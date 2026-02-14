@@ -7,7 +7,7 @@ HiHat1::HiHat1() {
     volumeMult = 1;
 }
 
-float HiHat1::GetSample(float time, float freqMult) {
+float HiHat1::GetSample(float time, float freq) {
     //float amp = GETSIN(100, (0.9 + RANDOMFLOAT * 0.3) / (10 * time + 1), time, 0);
         float amp = GetSquareWave(100, 0.1, 1, 0, time);
 

@@ -1,11 +1,42 @@
 #include "sequence.hpp"
 #include "instruments/sample.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <ranges>
+#include <string_view>
+#include <string>
 
+void Sequence::Initialize() { }
+void Sequence::Update() { }
+void Sequence::Deinitialize() { }
 
+Sequence::Sequence() {
 
-void Sequence::Initialize(std::string relFilePath) {
+}
+
+Sequence::Sequence(std::string relFilePath, Sample *sampleType) {
     //read from the file
-    samplesToAdd.push(bleh);
+
+    std::ifstream inputStream(relFilePath);
+    if (inputStream.is_open()) {
+        std::string line;
+        while (std::getline(inputStream, line)) {
+            //process stuff here
+            if (line.substr(0,2) != "//") {
+                
+
+
+                // for (auto word : line | std::views::split(' ')) {
+                //     std::cout << std::string_view(word) << "\n";
+                // }
+            }
+        }
+        inputStream.close();
+    }
+    else {
+        std::cout << "Failed to open file: " << relFilePath;
+    }
 }
 
 
@@ -14,32 +45,47 @@ void Sequence::AddMeasureToCount(float currentTime) {
     measureTimeTotal = currentTime;
 }
 
+// float prevTime;
 float Sequence::GetSampleAtTime(float time) {
     float result = 0.0f;
     int sampleCount = 0;
     
-    while (samplesToAdd.front().startTime > time) {
+    //Currently going back in time isn't supported
+    // if (prevTime > time) {
+    //     for (auto x = samplesAdded.end(); x != samplesAdded.begin(); x++) {
+    //         samplesToAdd.insert(samplesToAdd.begin(), *x); //push old ones to front
+    //     }
+    // }
+    // prevTime = time;
+
+
+    while (!samplesToAdd.empty() && samplesToAdd.front().startTime <= time) {
         activeSamples.push_back(samplesToAdd.front());
-        samplesToAdd.pop();
+        samplesAdded.push_back(samplesToAdd.front());
+        samplesToAdd.erase(samplesToAdd.begin()); //pop front
     }
 
-    for (auto i = activeSamples.begin(); i != activeSamples.end(); i++) {
+    for (auto i = activeSamples.begin(); i != activeSamples.end(); ) {
         SequenceSample seqSample = *i;
         auto sample = seqSample.sample;
         if (time >= seqSample.startTime && time <= sample->length + seqSample.startTime) {
             result += sample->GetSample(time - seqSample.startTime, seqSample.freqMult) * sample->volumeMult;
             sampleCount++;
+            ++i;
         }
         else if (time > sample->length + seqSample.startTime) {
-            activeSamples.erase(i);
+            i = activeSamples.erase(i);
+        }
+        else {
+            ++i;
         }
     }
-    return result / sampleCount;
+    return sampleCount > 0 ? result / sampleCount : 0.0f;
 }
 
-void Sequence::AddSamples(std::shared_ptr<Sample> sample, float startTime, float freqMult, int repetitions, float timeGap) {
+void Sequence::AddSamples(std::shared_ptr<Sample> sample, float startTime, float freq, int repetitions, float timeGap) {
     for (int i = 0; i < repetitions; i++) {
-        activeSamples.push_back(SequenceSample{ sample, startTime + timeGap * i, freqMult});
+        activeSamples.push_back(SequenceSample{ sample, startTime + timeGap * i, freq});
     }
 }
 // void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions, float timeGap) {

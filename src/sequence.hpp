@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <fstream>
 #include <queue>
 #include "instruments/sample.hpp"
 
@@ -13,14 +14,20 @@ typedef struct sequenceSample {
 
 class Sequence {
     public:
-        void Initialize(std::string relFilePath); //parse file
-        void AddSamples(std::shared_ptr<Sample> sample, float startTime, float freqMult, int repetitions = 1, float timeGap = 0);
+        Sequence(std::string relFilePath, Sample *sampleType);
+        Sequence(); //empty
         //void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions = 1, float timeGap = 0);
-        float GetSampleAtTime(float time);
+        virtual float GetSampleAtTime(float time);
+        virtual void AddSamples(std::shared_ptr<Sample> sample, float startTime, float freq, int repetitions = 1, float timeGap = 0);
+        virtual void Update(); //called each loop to update any logic in samples
+        virtual void Initialize();
+        virtual void Deinitialize(); //free unmanaged stuff
     private:
         int currentMeasure = 1;
         float measureTimeTotal;
         void AddMeasureToCount(float currentTime);
+        Sample *sampleType;
         std::vector<SequenceSample> activeSamples;
-        std::queue<SequenceSample> samplesToAdd;
+        std::vector<SequenceSample> samplesToAdd;
+        std::vector<SequenceSample> samplesAdded;
 };

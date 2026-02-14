@@ -4,6 +4,5 @@
 class KickDrum : public Sample {
     public:
         KickDrum();
-        float GetSample(float time, float freqMult);
-
+        float GetSample(float time, float freq);
 };

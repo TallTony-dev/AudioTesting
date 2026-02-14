@@ -8,8 +8,7 @@ GoopSynth::GoopSynth() {
     attackLength = 0.1f;
 }
 
-float GoopSynth::GetSample(float time, float freqMult) {
-    float freq = 100 * freqMult;
+float GoopSynth::GetSample(float time, float freq) {
     if (time < attackLength)
         freq += 1000 * attackMult * (attackLength - time) * (attackLength - time);
 

@@ -2,17 +2,24 @@
 #include <math.h>
 #include <cstdio>
 #include <memory>
-#include "miniaudio/miniaudio.h"
+#include <vector>
+#include "raygui/raylib/src/external/miniaudio.h"
 #include "sequence.hpp"
 #include "helpers.hpp"
 #include "instruments/allinstruments.hpp"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui/raygui.h"
+
 
 #define BUF_SIZE (SAMPLERATE*10)
  
 
+std::vector<Sequence*> activeSequences; //must be freed when popped
 
-Sequence mainSequence;
+Sequence mainSequence; //for testing
+
 void AddSamples() {
+    activeSequences.push_back(new KickDrum1Sequence());
     mainSequence.AddSamples(std::make_shared<KickDrum>(), 0, 1, 50, 1);
     std::shared_ptr<GoopSynth> goop = std::make_shared<GoopSynth>();
     GoopSynth* gooper = goop.get();
@@ -48,6 +55,9 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
 short int buffer[BUF_SIZE];
 int main(int argc, char ** argv)
 {
+    InitWindow(800, 500, "WOah cool DAW buddy");
+    SetTargetFPS(60);
+
     AddSamples();
     ma_device_config deviceConfig;
     ma_device device;
@@ -71,8 +81,19 @@ int main(int argc, char ** argv)
         return -1;
     }
     
-    printf("Press Enter to stop...\n");
-    getchar();
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground({255, 100, 20, 255});
+
+        for (Sequence *sequence : activeSequences) {
+            sequence->Update();
+        }
+
+        EndDrawing();
+    }
+    // printf("Press Enter to stop...\n");
+    // getchar();
     
     ma_device_uninit(&device);
     printf("Audio stopped.\n");

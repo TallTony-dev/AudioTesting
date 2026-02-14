@@ -6,6 +6,6 @@ class GoopSynth : public Sample {
         GoopSynth();
         float attackMult;
         float attackLength;
-        float GetSample(float time, float freqMult);
+        float GetSample(float time, float freq);
 
 };

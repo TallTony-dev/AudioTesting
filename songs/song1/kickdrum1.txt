@@ -1,0 +1,5 @@
+//M - time signature, bpm
+M - 4/4, 180
+//beat, hz, volume, length in beats
+0.5 + 2x1 - <300, 0.8, 2.4>, <150, 0.8, 2.4>
+M - 5/4
