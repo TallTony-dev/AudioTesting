@@ -4,9 +4,10 @@
 #include <memory>
 #include <vector>
 #include "raygui/raylib/src/external/miniaudio.h"
-#include "sequence.hpp"
+#include "plugins/sequence.hpp"
 #include "helpers.hpp"
-#include "instruments/allinstruments.hpp"
+#include "plugins/kickdrum1/kickdrum1.hpp"
+#include "plugins/kickdrum1/kickdrum1sequence.hpp"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui/raygui.h"
 
@@ -14,19 +15,19 @@
 #define BUF_SIZE (SAMPLERATE*10)
  
 
-std::vector<Sequence*> activeSequences; //must be freed when popped
+std::vector<Sequence*> activeSequences; //should use pluginloader instead
 
 Sequence mainSequence; //for testing
 
 void AddSamples() {
     activeSequences.push_back(new KickDrum1Sequence());
     mainSequence.AddSamples(std::make_shared<KickDrum>(), 0, 1, 50, 1);
-    std::shared_ptr<GoopSynth> goop = std::make_shared<GoopSynth>();
-    GoopSynth* gooper = goop.get();
-    gooper->length = 0.5;
-    gooper->attackMult = 1;
-    gooper->attackLength = 0.02;
-    gooper->volumeMult = 0.8;
+    // std::shared_ptr<GoopSynth> goop = std::make_shared<GoopSynth>();
+    // GoopSynth* gooper = goop.get();
+    // gooper->length = 0.5;
+    // gooper->attackMult = 1;
+    // gooper->attackLength = 0.02;
+    // gooper->volumeMult = 0.8;
     //mainSequence.AddSamples(goop, 0, 0, 40, 1);
     //mainSequence.AddSamples(std::make_shared<HiHat1>(), 0, 1, 50, 1);
 
@@ -86,8 +87,10 @@ int main(int argc, char ** argv)
         BeginDrawing();
         ClearBackground({255, 100, 20, 255});
 
-        for (Sequence *sequence : activeSequences) {
-            sequence->Update();
+        for (Sequence *sequence : activeSequences) { //should reference pluginloader instead
+            RenderTexture2D tex; //there should be a rendertex associated with each sequence along with location info
+            //that rendertex gets passed in with a window border drawn around it that allows resizing
+            sequence->Update(tex);
         }
 
         EndDrawing();

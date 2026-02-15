@@ -1,5 +1,6 @@
 #include "kickdrum1sequence.hpp"
-#include "../../raygui/raygui.h"
+#include "../include/raygui.h"
+#include "../include/raylib.h"
 
 float KickDrum1Sequence::GetSampleAtTime(float time) {
     return Sequence::GetSampleAtTime(time);
@@ -9,7 +10,7 @@ void KickDrum1Sequence::Initialize() { }
 void KickDrum1Sequence::Deinitialize() { }
 
 bool showMessageBox;
-void KickDrum1Sequence::Update() {
+void KickDrum1Sequence::Update(RenderTexture2D tex) {
     if (GuiButton((Rectangle){ 24, 24, 120, 30 }, "#191#Show Message")) showMessageBox = true;
         if (showMessageBox)
         {

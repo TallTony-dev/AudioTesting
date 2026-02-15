@@ -1,5 +1,6 @@
 #include "sequence.hpp"
-#include "instruments/sample.hpp"
+#include "sample.hpp"
+#include "include/raylib.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -8,7 +9,7 @@
 #include <string>
 
 void Sequence::Initialize() { }
-void Sequence::Update() { }
+void Sequence::Update(RenderTexture2D tex) { }
 void Sequence::Deinitialize() { }
 
 Sequence::Sequence() {

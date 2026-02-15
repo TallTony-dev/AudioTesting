@@ -1,0 +1,6 @@
+//M - time signature, bpm
+M - 4/4, 180
+//beat, hz, volume, length in beats
+//Have chording support and pattern support, and allow sequences to add custom properties to notes with arbitrary names
+0.5 + 2x1 - <hz=300, vol=0.8, len=2.4>, <hz=150, vol=0.8, len=2.4>
+M - 5/4
