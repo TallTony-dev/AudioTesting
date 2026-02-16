@@ -5,5 +5,6 @@
             "binaryPath": "/Users/tonyabbass/Projects/AudioTesting/bin/build_osx",
             "binaryArgs": []
         }
-    ]
+    ],
+    "makefile.configureOnOpen": true
 }

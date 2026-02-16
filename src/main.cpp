@@ -10,28 +10,14 @@
 #include "plugins/kickdrum1/kickdrum1sequence.hpp"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui/raygui.h"
+#include "pluginloader.hpp"
 
 
 #define BUF_SIZE (SAMPLERATE*10)
  
 
-std::vector<Sequence*> activeSequences; //should use pluginloader instead
+PluginLoader loader;
 
-Sequence mainSequence; //for testing
-
-void AddSamples() {
-    activeSequences.push_back(new KickDrum1Sequence());
-    mainSequence.AddSamples(std::make_shared<KickDrum>(), 0, 1, 50, 1);
-    // std::shared_ptr<GoopSynth> goop = std::make_shared<GoopSynth>();
-    // GoopSynth* gooper = goop.get();
-    // gooper->length = 0.5;
-    // gooper->attackMult = 1;
-    // gooper->attackLength = 0.02;
-    // gooper->volumeMult = 0.8;
-    //mainSequence.AddSamples(goop, 0, 0, 40, 1);
-    //mainSequence.AddSamples(std::make_shared<HiHat1>(), 0, 1, 50, 1);
-
-}
 
 int ind = 0;
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -43,13 +29,29 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
         float resultantSample = 0;
         float t = (float)ind / SAMPLERATE;
 
-        //resultantSample += GETFREQ(600, 0.5f, t, 0);
-        resultantSample += mainSequence.GetSampleAtTime(t);
+        for (LoadedPlugin plugin : loader.plugins) {
+            resultantSample += plugin.sequence->GetSampleAtTime(t);
+        }
 
         *output++ = resultantSample;
 
         ind++;
     }
+}
+
+void CreateWavFile() {
+    for (int i = 0; i < BUF_SIZE; i++)
+    {
+        float resultantSample = 0;
+        float t = (float)i / SAMPLERATE;
+
+        for (LoadedPlugin plugin : loader.plugins) {
+            resultantSample += BASEAMPLITUDE * plugin.sequence->GetSampleAtTime(t);
+        }
+
+        buffer[i] = resultantSample;
+    }
+    write_wav("out.wav", BUF_SIZE, buffer, SAMPLERATE);
 }
 
 //Some LLM use for the base code for miniaudio output
@@ -58,8 +60,7 @@ int main(int argc, char ** argv)
 {
     InitWindow(800, 500, "WOah cool DAW buddy");
     SetTargetFPS(60);
-
-    AddSamples();
+    
     ma_device_config deviceConfig;
     ma_device device;
     
@@ -81,42 +82,33 @@ int main(int argc, char ** argv)
         ma_device_uninit(&device);
         return -1;
     }
-    
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground({255, 100, 20, 255});
+        ClearBackground(BLUE);
 
-        for (Sequence *sequence : activeSequences) { //should reference pluginloader instead
-            RenderTexture2D tex; //there should be a rendertex associated with each sequence along with location info
+        for (LoadedPlugin plugin : loader.plugins) { //should reference pluginloader instead
             //that rendertex gets passed in with a window border drawn around it that allows resizing
-            sequence->Update(tex);
+            Sequence *sequence = plugin.sequence;
+            Rectangle texturePos = sequence->texturePos;
+            Rectangle guiBox = {.width = texturePos.width, .height = texturePos.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
+                                .x = texturePos.x, .y = texturePos.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
+            if (sequence->isWindowShown) {
+                if(GuiWindowBox(guiBox, "pluginwindow"))
+                    sequence->isWindowShown = false;
+                BeginTextureMode(sequence->tex);
+                sequence->Update();
+                EndTextureMode();
+                DrawTexture(sequence->tex.texture, texturePos.x, texturePos.y, WHITE);
+            }
         }
 
         EndDrawing();
     }
-    // printf("Press Enter to stop...\n");
-    // getchar();
     
     ma_device_uninit(&device);
     printf("Audio stopped.\n");
     
-    //write wav here
-    float t;
-    float amplitude = 32000;
- 
-    for (int i = 0; i < BUF_SIZE; i++)
-    {
-        float resultantSample = 0;
-        t = (float)i / SAMPLERATE;
-
-        //resultantSample += GETFREQ(600, amplitude, t, 0);
-        resultantSample += BASEAMPLITUDE * mainSequence.GetSampleAtTime(t);
-
-        buffer[i] = resultantSample;
-    }
- 
-    write_wav("out.wav", BUF_SIZE, buffer, SAMPLERATE);
- 
+    CreateWavFile();
     return 0;
 }

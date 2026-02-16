@@ -7,7 +7,7 @@
 #include "include/raylib.h"
 
 typedef struct sequenceSample {
-    std::shared_ptr<Sample> sample;
+    Sample *sample;
     float startTime;
     float freqMult;
 } SequenceSample;
@@ -15,17 +15,22 @@ typedef struct sequenceSample {
 
 class Sequence {
     public:
-        Sequence(std::string relFilePath, Sample *sampleType);
+        Sequence(std::string relFilePath);
         Sequence(); //empty
+        ~Sequence(); //destructor
         //void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions = 1, float timeGap = 0);
         virtual float GetSampleAtTime(float time);
-        virtual void AddSamples(std::shared_ptr<Sample> sample, float startTime, float freq, int repetitions = 1, float timeGap = 0);
+        virtual void AddSamples(std::vector<float> params, float startTime, float freq, int repetitions = 1, float timeGap = 0);
         /// @brief called each loop to update any logic in samples and to draw things
         /// @param tex texture to draw anything that the plugin wants, on a user resizeable window with a border
-        virtual void Update(RenderTexture2D tex);
-        virtual void Initialize();
+        virtual void Update();
+        virtual void Initialize(Vector2 dims);
         virtual void Deinitialize(); //free unmanaged stuff
-    private:
+        Rectangle texturePos; //where the actual window is drawn on screen
+        RenderTexture2D tex; //texture that is drawn to screen
+        bool isResized; //true if window was resized this frame
+        bool isWindowShown; //true if close button hasnt been pressed
+    protected:
         int currentMeasure = 1;
         float measureTimeTotal;
         void AddMeasureToCount(float currentTime);

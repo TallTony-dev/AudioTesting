@@ -8,16 +8,38 @@
 #include <string_view>
 #include <string>
 
-void Sequence::Initialize() { }
-void Sequence::Update(RenderTexture2D tex) { }
-void Sequence::Deinitialize() { }
-
-Sequence::Sequence() {
-
+Sequence::~Sequence() {
+    for (SequenceSample samp : activeSamples) {
+        delete samp.sample;
+    }
+    for (SequenceSample samp : samplesToAdd) {
+        delete samp.sample;
+    }
+    for (SequenceSample samp : samplesAdded) {
+        delete samp.sample;
+    }
 }
 
-Sequence::Sequence(std::string relFilePath, Sample *sampleType) {
-    //read from the file
+void Sequence::Initialize(Vector2 dims) { 
+    tex = LoadRenderTexture(dims.x, dims.y); //there should be a rendertex associated with each sequence along with location info
+    isWindowShown = true;
+}
+void Sequence::Update() { 
+    if (isResized) {
+        UnloadRenderTexture(tex);
+        tex = LoadRenderTexture(texturePos.width, texturePos.height); //there should be a rendertex associated with each sequence along with location info
+    }
+}
+void Sequence::Deinitialize() { 
+    UnloadRenderTexture(tex);
+}
+
+Sequence::Sequence() {
+    
+}
+
+Sequence::Sequence(std::string relFilePath) {
+    //read from the file and add samples using virtual funcs
 
     std::ifstream inputStream(relFilePath);
     if (inputStream.is_open()) {
@@ -28,9 +50,9 @@ Sequence::Sequence(std::string relFilePath, Sample *sampleType) {
                 
 
 
-                // for (auto word : line | std::views::split(' ')) {
-                //     std::cout << std::string_view(word) << "\n";
-                // }
+                for (auto word : line | std::views::split(' ')) {
+                    std::cout << std::string_view(word) << "\n";
+                }
             }
         }
         inputStream.close();
@@ -84,10 +106,8 @@ float Sequence::GetSampleAtTime(float time) {
     return sampleCount > 0 ? result / sampleCount : 0.0f;
 }
 
-void Sequence::AddSamples(std::shared_ptr<Sample> sample, float startTime, float freq, int repetitions, float timeGap) {
-    for (int i = 0; i < repetitions; i++) {
-        activeSamples.push_back(SequenceSample{ sample, startTime + timeGap * i, freq});
-    }
+void Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions, float timeGap) {
+
 }
 // void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions, float timeGap) {
 //     for (int i = 0; i < repetitions; i++) {

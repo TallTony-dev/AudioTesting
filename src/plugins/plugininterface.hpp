@@ -7,6 +7,7 @@ extern "C" {
     typedef void (*DestroySequenceFn)(Sequence*);
 }
 
+//Define this in dequence header files once they're loaded properly
 #define EXPORT_SEQUENCE(ClassName) \
     extern "C" Sequence* CreateSequence() { \
         return new ClassName(); \

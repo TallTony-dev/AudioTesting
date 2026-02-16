@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "sequence.hpp"
+#include "plugins/sequence.hpp"
 #include "plugins/plugininterface.hpp"
  
 //mild llm usage
@@ -14,8 +14,8 @@ struct LoadedPlugin {
 class PluginLoader {
     public:
         std::vector<LoadedPlugin> plugins;
-        bool LoadPlugin(const std::string& pluginDir);
-        bool ReloadPlugin(const std::string& pluginDir);
+        bool LoadPlugin(const std::string& pluginRelPath);
+        bool ReloadPlugin(const std::string& pluginRelPath);
         bool UnloadPlugin();
         void UnloadAll();
 };
