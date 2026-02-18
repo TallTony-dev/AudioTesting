@@ -36,8 +36,8 @@ bool PluginLoader::LoadPlugin(const std::string& pluginName) {
         plugin.handle = handle;
         plugin.destroy = destroy;
         plugin.sequence = create();
-        plugin.name = pluginName;
-        plugin.sequence->Initialize({200,200});
+        plugin.sequence->name = pluginName;
+        plugin.sequence->Initialize({250,250});
         plugins.push_back(plugin);
     }
     else {
@@ -53,7 +53,7 @@ bool PluginLoader::LoadPlugin(const std::string& pluginName) {
 }
 bool PluginLoader::ReloadPlugin(const std::string& pluginName) {
     for (LoadedPlugin plugin : plugins) {
-        if (plugin.name == pluginName) {
+        if (plugin.sequence->name == pluginName) {
             plugin.destroy(plugin.sequence);
             return true;
         }

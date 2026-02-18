@@ -5,7 +5,6 @@
  
 //mild llm usage
 struct LoadedPlugin {
-    std::string name;
     void* handle;
     Sequence* sequence;
     DestroySequenceFn destroy;

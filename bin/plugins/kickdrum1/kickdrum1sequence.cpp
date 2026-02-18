@@ -8,11 +8,9 @@ float KickDrum1Sequence::GetSampleAtTime(float time) {
 }
 
 void KickDrum1Sequence::Initialize(Vector2 dims) { 
-    texturePos = {.width = dims.y, .height = dims.x, .x = 100, .y = 100};
     Sequence::Initialize(dims);
-}
-void KickDrum1Sequence::Deinitialize() { 
-    Sequence::Deinitialize();
+    name = "kickdrum1";
+    AddSamples({}, 0, 100, 50, 1);
 }
 
 bool showMessageBox;
@@ -30,7 +28,7 @@ void KickDrum1Sequence::Update() {
         if (result >= 0) showMessageBox = false;
     }
 
-    DrawRectangle(0,0,texturePos.width, texturePos.height, RED);
+    DrawRectangle(0,0,currentPos.width, currentPos.height, RED);
 }
 
 void KickDrum1Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions, float timeGap) {

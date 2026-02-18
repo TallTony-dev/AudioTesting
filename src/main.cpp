@@ -6,7 +6,6 @@
 #include "raygui/raylib/src/external/miniaudio.h"
 #include "plugins/include/sequence.hpp"
 #include "plugins/include/helpers.hpp"
-#define RAYGUI_IMPLEMENTATION
 #include "raygui/raygui.h"
 #include "pluginloader.hpp"
 #include "raygui/maingui.hpp"
@@ -94,27 +93,9 @@ int main(int argc, char ** argv)
         int bottombarcount = 0;
         for (LoadedPlugin plugin : loader.plugins) { //should reference pluginloader instead
             //that rendertex gets passed in with a window border drawn around it that allows resizing
-            Sequence *sequence = plugin.sequence;
-            Rectangle texturePos = sequence->texturePos;
-            Rectangle guiBox = {.width = texturePos.width, .height = texturePos.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
-                                .x = texturePos.x, .y = texturePos.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
-
-            if (sequence->isWindowShown) {      
-                if (GuiWindowBox(guiBox, "pluginwindow"))
-                    sequence->isWindowShown = false;
-                BeginTextureMode(sequence->tex);
-                sequence->Update();
-                EndTextureMode();
-                DrawTexture(sequence->tex.texture, texturePos.x, texturePos.y, WHITE);
-            }
-            else {
-                //draw bottom bar icon here
-                if (BottomBarButton(plugin.name,bottombarcount))
-                    sequence->isWindowShown = true;
-                bottombarcount++;
-            }
+            plugin.sequence->Draw();
         }
-
+        DrawBottomBar();
         EndDrawing();
     }
     

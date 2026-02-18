@@ -1,12 +1,14 @@
 #include "plugins/include/sequence.hpp"
 #include "plugins/include/sample.hpp"
-#include "include/raylib.h"
+#include "raygui/maingui.hpp"
+#include "raygui/raygui.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <ranges>
 #include <string_view>
 #include <string>
+
 
 Sequence::~Sequence() {
     for (SequenceSample samp : activeSamples) {
@@ -20,21 +22,40 @@ Sequence::~Sequence() {
     }
     if (tex.id != 0)
         UnloadRenderTexture(tex);
+}   
+
+void Sequence::UpdateWindowPos() {
+    UnloadRenderTexture(tex);
+    tex = LoadRenderTexture(currentPos.width, currentPos.height);
 }
 
 void Sequence::Initialize(Vector2 dims) { 
-    tex = LoadRenderTexture(dims.x, dims.y); //there should be a rendertex associated with each sequence along with location info
-    texturePos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
+    name = "default";
     isWindowShown = true;
+    tex = LoadRenderTexture(dims.x, dims.y);
+    currentPos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
+}
+void Sequence::DrawContent() {
+    //defined in derived classes
 }
 void Sequence::Update() { 
-    if (isResized) {
-        UnloadRenderTexture(tex);
-        tex = LoadRenderTexture(texturePos.width, texturePos.height); //there should be a rendertex associated with each sequence along with location info
-    }
+    // TODO: implement mouse handling for the sequence window
 }
-void Sequence::Deinitialize() { 
-    UnloadRenderTexture(tex);
+
+void Sequence::Draw() {
+    if (isWindowShown) {
+        if (DrawWindowBoxAround(currentPos, name)) {
+            isWindowShown = false;
+            AddToBottomBar(this);
+        }
+        BeginTextureMode(tex);
+
+        ClearBackground(GREEN);
+        DrawContent();
+
+        EndTextureMode();
+        DrawTexture(tex.texture, currentPos.x, currentPos.y, WHITE);
+    }
 }
 
 Sequence::Sequence() {
@@ -71,18 +92,31 @@ void Sequence::AddMeasureToCount(float currentTime) {
     measureTimeTotal = currentTime;
 }
 
-// float prevTime;
+float prevTime;
 float Sequence::GetSampleAtTime(float time) {
     float result = 0.0f;
     int sampleCount = 0;
-    
-    //Currently going back in time isn't supported
-    // if (prevTime > time) {
-    //     for (auto x = samplesAdded.end(); x != samplesAdded.begin(); x++) {
-    //         samplesToAdd.insert(samplesToAdd.begin(), *x); //push old ones to front
-    //     }
-    // }
-    // prevTime = time;
+
+    if (prevTime > time) {
+        for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
+            SequenceSample samp = *x;
+            //if the sample hasnt started yet at new time
+            if (samp.startTime > time) {
+                samplesToAdd.insert(samplesToAdd.begin(), samp);
+                samplesAdded.erase(x);
+                continue;
+            }
+            //if time is in the active period of the sample
+            else if (samp.startTime + samp.sample->length >= time) {
+                activeSamples.push_back(samp);
+                samplesAdded.erase(x);
+                continue;
+            }
+            //otherwise leave it in the past played samples
+            x++;
+        }
+    }
+    prevTime = time;
 
 
     while (!samplesToAdd.empty() && samplesToAdd.front().startTime <= time) {
@@ -110,7 +144,7 @@ float Sequence::GetSampleAtTime(float time) {
 }
 
 void Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions, float timeGap) {
-
+    //should be defined in derived classes
 }
 // void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions, float timeGap) {
 //     for (int i = 0; i < repetitions; i++) {
