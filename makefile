@@ -1,5 +1,5 @@
 makefile:
-#Heavy llm usage here
+#Heavy llm usage here :/
 COMPILER = clang++
 CC = clang
 
@@ -24,13 +24,14 @@ all: build_osx build_windows ##build_web
 
 build_osx: $(OBJECTS)
 	$(COMPILER) $(OBJECTS) $(RAYLIB_LIB) $(MACOS_OUT) $(MACOS_OPT) $(MACOS_FRAMEWORKS)
+	@rsync -au src/plugins/ bin/plugins/
 
 build_windows: $(OBJECTS)
 	$(COMPILER) $(OBJECTS) $(RAYLIB_LIB) $(WINDOWS_OUT) $(WINDOWS_OPT)
 
 $(OBJDIR)/%.o: src/%.cpp | $(OBJDIR)
 	@mkdir -p $(dir $@)
-	$(COMPILER) $(RAYLIB_INCLUDE) -c $< -o $@
+	$(COMPILER) $(RAYLIB_INCLUDE) -std=c++23 -c $< -o $@
 
 $(OBJDIR)/%.o: src/%.c | $(OBJDIR)
 	@mkdir -p $(dir $@)
@@ -40,4 +41,4 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 clean:
-	rm -rf $(OBJDIR) bin/*
+	rm -rf $(OBJDIR) bin/build_osx bin/build_windows

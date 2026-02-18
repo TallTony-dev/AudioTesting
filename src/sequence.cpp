@@ -1,5 +1,5 @@
-#include "sequence.hpp"
-#include "sample.hpp"
+#include "plugins/include/sequence.hpp"
+#include "plugins/include/sample.hpp"
 #include "include/raylib.h"
 #include <fstream>
 #include <iostream>
@@ -18,10 +18,13 @@ Sequence::~Sequence() {
     for (SequenceSample samp : samplesAdded) {
         delete samp.sample;
     }
+    if (tex.id != 0)
+        UnloadRenderTexture(tex);
 }
 
 void Sequence::Initialize(Vector2 dims) { 
     tex = LoadRenderTexture(dims.x, dims.y); //there should be a rendertex associated with each sequence along with location info
+    texturePos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
     isWindowShown = true;
 }
 void Sequence::Update() { 

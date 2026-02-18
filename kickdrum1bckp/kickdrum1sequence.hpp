@@ -12,5 +12,3 @@ class KickDrum1Sequence : public Sequence {
         void Initialize(Vector2 dims) override;
         void Deinitialize() override;
 };
-
-//EXPORT_SEQUENCE(KickDrum1Sequence)

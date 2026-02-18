@@ -1,4 +1,4 @@
-#include "helpers.hpp"
+#include "plugins/include/helpers.hpp"
 #include <assert.h>
 //duty between 0 and 1 and represents portion of time up
 float GetSquareWave(float hz, float duty, float amplitude, float phaseDiff, float time) {

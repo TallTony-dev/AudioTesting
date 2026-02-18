@@ -14,7 +14,7 @@ UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Darwin)                 # macOS
     SHARED_EXT  := .dylib
-    LDFLAGS     := -dynamiclib
+    LDFLAGS     := -dynamiclib -undefined dynamic_lookup
 else ifeq ($(OS),Windows_NT)             # Windows (MinGW / MSYS2)
     SHARED_EXT  := .dll
     LDFLAGS     := -shared

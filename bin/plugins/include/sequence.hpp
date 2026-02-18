@@ -4,7 +4,7 @@
 #include <fstream>
 #include <queue>
 #include "sample.hpp"
-#include "include/raylib.h"
+#include "../rayinclude/raylib.h"
 
 typedef struct sequenceSample {
     Sample *sample;
@@ -17,7 +17,7 @@ class Sequence {
     public:
         Sequence(std::string relFilePath);
         Sequence(); //empty
-        ~Sequence(); //destructor
+        virtual ~Sequence(); //destructor
         //void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions = 1, float timeGap = 0);
         virtual float GetSampleAtTime(float time);
         virtual void AddSamples(std::vector<float> params, float startTime, float freq, int repetitions = 1, float timeGap = 0);

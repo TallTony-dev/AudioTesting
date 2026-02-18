@@ -1,5 +1,5 @@
 #include "kickdrum1.hpp"
-#include "../../helpers.hpp"
+#include "../include/helpers.hpp"
 
 KickDrum::KickDrum() {
     length = 0.5;

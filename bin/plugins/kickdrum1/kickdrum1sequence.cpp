@@ -1,5 +1,7 @@
 #include "kickdrum1sequence.hpp"
-#include "../include/raygui.h"
+#include "../rayinclude/raygui.h"
+
+EXPORT_SEQUENCE(KickDrum1Sequence)
 
 float KickDrum1Sequence::GetSampleAtTime(float time) {
     return Sequence::GetSampleAtTime(time);
@@ -31,7 +33,7 @@ void KickDrum1Sequence::Update() {
     DrawRectangle(0,0,texturePos.width, texturePos.height, RED);
 }
 
-void KickDrum1Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions = 1, float timeGap = 0) {
+void KickDrum1Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions, float timeGap) {
     for (int i = 0; i < repetitions; i++) {
         KickDrum *drum = new KickDrum();
         activeSamples.push_back(SequenceSample{drum, startTime + timeGap * i, freq});

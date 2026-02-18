@@ -1,4 +1,4 @@
 obj
-bin/*
+bin/out.wav
+bin/build_osx
 *.wav
-.vscode/

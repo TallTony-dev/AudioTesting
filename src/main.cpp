@@ -4,21 +4,20 @@
 #include <memory>
 #include <vector>
 #include "raygui/raylib/src/external/miniaudio.h"
-#include "plugins/sequence.hpp"
-#include "helpers.hpp"
-#include "plugins/kickdrum1/kickdrum1.hpp"
-#include "plugins/kickdrum1/kickdrum1sequence.hpp"
+#include "plugins/include/sequence.hpp"
+#include "plugins/include/helpers.hpp"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui/raygui.h"
 #include "pluginloader.hpp"
+#include "raygui/maingui.hpp"
+#include <iostream>
 
 
 #define BUF_SIZE (SAMPLERATE*10)
- 
 
 PluginLoader loader;
 
-
+//Some LLM use for the base code for miniaudio output
 int ind = 0;
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
@@ -39,6 +38,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     }
 }
 
+short int buffer[BUF_SIZE];
 void CreateWavFile() {
     for (int i = 0; i < BUF_SIZE; i++)
     {
@@ -54,12 +54,16 @@ void CreateWavFile() {
     write_wav("out.wav", BUF_SIZE, buffer, SAMPLERATE);
 }
 
-//Some LLM use for the base code for miniaudio output
-short int buffer[BUF_SIZE];
+
 int main(int argc, char ** argv)
 {
-    InitWindow(800, 500, "WOah cool DAW buddy");
+    InitWindow(800, 500, "Woah cool DAW buddy");
     SetTargetFPS(60);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+
+    loader.LoadPlugin("kickdrum1");
+    
+
     
     ma_device_config deviceConfig;
     ma_device device;
@@ -82,24 +86,32 @@ int main(int argc, char ** argv)
         ma_device_uninit(&device);
         return -1;
     }
-
+    
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLUE);
 
+        int bottombarcount = 0;
         for (LoadedPlugin plugin : loader.plugins) { //should reference pluginloader instead
             //that rendertex gets passed in with a window border drawn around it that allows resizing
             Sequence *sequence = plugin.sequence;
             Rectangle texturePos = sequence->texturePos;
             Rectangle guiBox = {.width = texturePos.width, .height = texturePos.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
                                 .x = texturePos.x, .y = texturePos.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
-            if (sequence->isWindowShown) {
-                if(GuiWindowBox(guiBox, "pluginwindow"))
+
+            if (sequence->isWindowShown) {      
+                if (GuiWindowBox(guiBox, "pluginwindow"))
                     sequence->isWindowShown = false;
                 BeginTextureMode(sequence->tex);
                 sequence->Update();
                 EndTextureMode();
                 DrawTexture(sequence->tex.texture, texturePos.x, texturePos.y, WHITE);
+            }
+            else {
+                //draw bottom bar icon here
+                if (BottomBarButton(plugin.name,bottombarcount))
+                    sequence->isWindowShown = true;
+                bottombarcount++;
             }
         }
 
