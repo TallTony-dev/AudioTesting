@@ -57,9 +57,9 @@ void CreateWavFile() {
 
 int main(int argc, char ** argv)
 {
-    InitWindow(800, 500, "Woah cool DAW buddy");
-    SetTargetFPS(60);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetTargetFPS(60);
+    InitWindow(800, 500, "Woah cool DAW buddy");
 
     loader.LoadPlugin("kickdrum1");
     
