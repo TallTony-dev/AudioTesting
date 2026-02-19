@@ -48,6 +48,11 @@ void Sequence::Initialize(Vector2 dims) {
 void Sequence::DrawWindowContent() {
     //defined in derived classes
     //note isWindowResized for use here
+
+    //TODO: Have a default implementation here
+    //Use a list of params that come from a certain selected sequence sample by the main gui sequence draw
+    //Each param has a name and a float value, vector of std::tuple probably
+    //params are loaded from file with sequence samples
 }
 Rectangle Sequence::GetCurrentPos() {
     return currentPos;
