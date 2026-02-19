@@ -16,7 +16,9 @@ void KickDrum1Sequence::Initialize(Vector2 dims) {
 bool showMessageBox;
 void KickDrum1Sequence::Update() {
     Sequence::Update();
-
+    //update any custom logic
+}
+void KickDrum1Sequence::DrawWindowContent() {
     if (GuiButton((Rectangle){ 24, 24, 120, 30 }, "#191#Show Message")) 
         showMessageBox = true;
         
@@ -27,7 +29,7 @@ void KickDrum1Sequence::Update() {
 
         if (result >= 0) showMessageBox = false;
     }
-
+    Rectangle currentPos = GetCurrentPos();
     DrawRectangle(0,0,currentPos.width, currentPos.height, RED);
 }
 

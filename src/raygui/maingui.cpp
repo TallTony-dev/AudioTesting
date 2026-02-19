@@ -35,7 +35,8 @@ void DrawBottomBar() {
 }
 
 bool DrawWindowBoxAround(Rectangle rect, std::string name) {
-    Rectangle guiBox = {.width = rect.width, .height = rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
-    .x = rect.x, .y = rect.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT};
+    const float borderWidth = 1;
+    Rectangle guiBox = {.width = rect.width + borderWidth * 2, .height = rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
+    .x = rect.x - borderWidth, .y = rect.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT + borderWidth};
     return GuiWindowBox(guiBox, "pluginwindow");
 }

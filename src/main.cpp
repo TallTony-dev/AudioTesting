@@ -87,11 +87,14 @@ int main(int argc, char ** argv)
     }
     
     while (!WindowShouldClose()) {
+        for (LoadedPlugin plugin : loader.plugins) {
+            plugin.sequence->Update();
+        }
         BeginDrawing();
         ClearBackground(BLUE);
 
         int bottombarcount = 0;
-        for (LoadedPlugin plugin : loader.plugins) { //should reference pluginloader instead
+        for (LoadedPlugin plugin : loader.plugins) {
             //that rendertex gets passed in with a window border drawn around it that allows resizing
             plugin.sequence->Draw();
         }

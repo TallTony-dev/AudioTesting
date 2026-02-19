@@ -10,4 +10,5 @@ class KickDrum1Sequence : public Sequence {
         void AddSamples(std::vector<float> params, float startTime, float freq, int repetitions = 1, float timeGap = 0) override;
         void Update() override; //called each loop to update any logic in samples
         void Initialize(Vector2 dims) override;
+        void DrawWindowContent() override;
 };

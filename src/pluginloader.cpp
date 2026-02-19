@@ -15,6 +15,7 @@
 bool PluginLoader::LoadPlugin(const std::string& pluginName) {
     std::string pluginRelPath = "./plugins/" + pluginName;
     //run makefile and error on fail
+    std::system((std::string("make -C ") + pluginRelPath + " clean").c_str());
     std::system((std::string("make -C ") + pluginRelPath + " all").c_str());
 
     //link the dll and call the constructor from plugininterface
