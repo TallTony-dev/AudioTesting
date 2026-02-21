@@ -2,12 +2,15 @@
 #include "plugins/include/sample.hpp"
 #include "raygui/maingui.hpp"
 #include "raygui/raygui.h"
+#include "plugins/include/helpers.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <ranges>
 #include <string_view>
 #include <string>
+#include <algorithm>
+#include <exception>
 
 
 Sequence::~Sequence() {
@@ -208,59 +211,153 @@ Sequence::Sequence() {
     
 }
 
-Sequence::Sequence(std::string relFilePath) {
+void Sequence::LoadSong(std::string songPath) {
+    LoadSequenceSamples(songPath + name + "/" + name + "seq.txt");
+}
+
+void Sequence::LoadSequenceSamples(std::string filePath) {
     //read from the file and add samples using virtual funcs
 
-    std::ifstream inputStream(relFilePath);
+    std::ifstream inputStream(filePath);
+    int currentLine = 0;
     if (inputStream.is_open()) {
-        std::string line;
-        while (std::getline(inputStream, line)) {
-            //process stuff here
-            if (line.substr(0,2) != "//") {
-                
+        std::string lineStr;
+        int currentMeasure = 0;
+        while (!inputStream.eof()) {
+            std::getline(inputStream, lineStr);
+            currentLine++;
+            if (lineStr.substr(0,2) != "//") {
+                std::stringstream linestream(lineStr);
+                if (linestream.peek() == 'M') {
+                    currentMeasure++;
+                    linestream.ignore(3, '-');
+                    Measure measure;
+                    linestream >> measure.bpm;
+                    linestream >> measure.numerator;
+                    linestream.ignore(1, '/');
+                    linestream >> measure.denominator;
+                    
+                    measure.length = (60 / measure.bpm) * measure.numerator;
+                    AddMeasureToCount(measure);
 
-
-                for (auto word : line | std::views::split(' ')) {
-                    std::cout << std::string_view(word) << "\n";
+                }
+                else {
+                    float startBeat;
+                    int repetitions = 1;
+                    float beatGap = 0;
+                    std::unordered_map<std::string, float> properties;
+                    if (!(linestream >> startBeat)) {
+                        std::cout << "issue loading startbeat from file at line " << currentLine << "\n";
+                    }
+                    if (linestream.peek() == ',') {
+                        linestream.ignore(1); // skip comma
+                        if (!(linestream >> beatGap)) {
+                            std::cout << "issue loading beatGap from file at line " << currentLine << "\n";
+                        }
+                        linestream >> std::ws; // skip whitespace
+                        if (linestream.peek() == 'x') {
+                            linestream.ignore(1); // skip 'x'
+                            if (!(linestream >> repetitions)) {
+                                std::cout << "issue loading repetitions from file at line " << currentLine << "\n";
+                            }
+                        }
+                    }
+                    while (linestream.good()) {
+                        linestream.ignore(std::numeric_limits<std::streamsize>::max(), '<');
+                        if (!linestream.good()) break;
+                        std::string paramName;
+                        float paramValue = 0;
+                        while (linestream.good() && linestream.peek() != '>' && linestream.peek() != EOF) {
+                            if (!(linestream >> paramName)) {
+                                std::cout << "issue loading paramName from file at line " << currentLine << "\n";
+                                break;
+                            }
+                            if (!(linestream >> paramValue)) {
+                                std::cout << "issue loading paramValue from file at line " << currentLine << "\n";
+                                break;
+                            }
+                            properties.emplace(paramName, paramValue);
+                            if (linestream.peek() == ',') {
+                                linestream.ignore(1);
+                            }
+                        }
+                        if (linestream.peek() == '>') {
+                            linestream.ignore(1);
+                        }
+                    }
+                    
+                    AddSamples(properties, GetBeatTime(currentMeasure, startBeat), repetitions, 
+                    beatGap * (60 / std::get<0>(measures[currentMeasure - 1]).bpm));
                 }
             }
         }
         inputStream.close();
+        SortSamplesToAdd();
     }
     else {
-        std::cout << "Failed to open file: " << relFilePath;
+        std::cout << "Failed to open file: " << filePath;
+    }
+}
+
+void Sequence::SortSamplesToAdd() {
+    std::sort(samplesToAdd.begin(), samplesToAdd.end(), 
+    [](const SequenceSample& a, const SequenceSample& b) {
+        return a.startTime < b.startTime;
+    });
+}
+
+float Sequence::GetBeatTime(int measure, float beat) {
+    if (measure > measures.size() || measure < 1) {
+        throw std::invalid_argument("Can't get beat time of a measure out of bounds");
+    }
+    Measure measureobj = std::get<0>(measures.at(measure - 1));
+    float time = std::get<1>(measures.at(measure - 1));
+    time += beat * (60 / measureobj.bpm);
+    return time;
+}
+void Sequence::AddMeasureToCount(Measure measure) {
+    measures.push_back(std::tuple(measure, -1));
+    UpdateMeasureTimes();
+}
+void Sequence::UpdateMeasureTimes() {
+    float countedTime = 0;
+    for (auto &element : measures) {
+        Measure measure = std::get<0>(element);
+        float time = countedTime;
+        countedTime += measure.length;
+        element = std::tuple(measure, time);
     }
 }
 
 
-void Sequence::AddMeasureToCount(float currentTime) {
-    currentMeasure++;
-    measureTimeTotal = currentTime;
-}
 
 float prevTime;
 float Sequence::GetSampleAtTime(float time) {
     float result = 0.0f;
     int sampleCount = 0;
 
+    //check if sample vectors are valid if time is not progressing normally
     if (prevTime > time) {
         for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
+            --x;
             SequenceSample samp = *x;
             //if the sample hasnt started yet at new time
             if (samp.startTime > time) {
                 samplesToAdd.insert(samplesToAdd.begin(), samp);
-                samplesAdded.erase(x);
+                x = samplesAdded.erase(x);
                 continue;
             }
             //if time is in the active period of the sample
             else if (samp.startTime + samp.sample->length >= time) {
                 activeSamples.push_back(samp);
-                samplesAdded.erase(x);
+                x = samplesAdded.erase(x);
                 continue;
             }
             //otherwise leave it in the past played samples
-            x++;
         }
+    }
+    else if (time > prevTime + 1 / SAMPLERATE - 0.0001) {
+        //TODO: handle this
     }
     prevTime = time;
 
@@ -275,7 +372,7 @@ float Sequence::GetSampleAtTime(float time) {
         SequenceSample seqSample = *i;
         auto sample = seqSample.sample;
         if (time >= seqSample.startTime && time <= sample->length + seqSample.startTime) {
-            result += sample->GetSample(time - seqSample.startTime, seqSample.freqMult) * sample->volumeMult;
+            result += sample->GetSample(time - seqSample.startTime) * sample->volumeMult;
             sampleCount++;
             ++i;
         }
@@ -289,7 +386,7 @@ float Sequence::GetSampleAtTime(float time) {
     return sampleCount > 0 ? result / sampleCount : 0.0f;
 }
 
-void Sequence::AddSamples(std::vector<float> params, float startTime, float freq, int repetitions, float timeGap) {
+void Sequence::AddSamples(std::unordered_map<std::string, float>, float startTime, int repetitions, float timeGap) {
     //should be defined in derived classes
 }
 // void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions, float timeGap) {

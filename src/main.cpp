@@ -61,7 +61,12 @@ int main(int argc, char ** argv)
     InitWindow(800, 500, "Woah cool DAW buddy");
 
     loader.LoadPlugin("kickdrum1");
-    
+    if (loader.plugins.size() > 0) {
+    loader.plugins[0].sequence->LoadSong("./songs/song1/");
+    }
+    else {
+        std::cout << "Pluging not loaded?";
+    }
 
     
     ma_device_config deviceConfig;
