@@ -12,6 +12,9 @@
 #include <algorithm>
 #include <exception>
 
+#ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
+#define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
+#endif
 
 Sequence::~Sequence() {
     for (SequenceSample *samp : activeSamples) {
@@ -42,6 +45,19 @@ void Sequence::UpdateCurrentPos(Rectangle rect) {
         isWindowResized = true;
         windowTex = LoadRenderTexture(rect.width, rect.height);
     }
+    Vector2 win = {(float)GetScreenWidth(), (float)GetScreenHeight()};
+    if (rect.x + rect.width / 4 > win.x) {
+        rect.x = win.x - rect.width / 4;
+    }
+    else if (rect.x < -rect.width * 3 / 4) {
+        rect.x = -rect.width * 3 / 4;
+    }
+    if (rect.y + rect.height / 4 > win.y) {
+        rect.y = win.y - rect.height / 4;
+    }
+    else if (rect.y < RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT) {
+        rect.y = RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+    }
     currentPos = rect;
 }
 void Sequence::Initialize(Vector2 dims) { 
@@ -59,9 +75,7 @@ void Sequence::DrawWindowContent() {
     //Each param has a name and a float value, vector of std::tuple probably
     //params are loaded from file with sequence samples
 }
-#ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
-#define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
-#endif
+
 Rectangle Sequence::GetCurrentPos() {
     return currentPos;
 }
@@ -208,7 +222,12 @@ void Sequence::Update() {
     }
 }
 
-void Sequence::Draw() {
+void Sequence::DrawSequence() {
+    //jbkn
+    //draw to the back via mainsequence
+}
+
+void Sequence::DrawWindow() {
     if (isWindowShown) {
         if (DrawWindowBoxAround(currentPos, name)) {
             isWindowShown = false;

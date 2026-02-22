@@ -30,7 +30,8 @@ class Sequence {
         //void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions = 1, float timeGap = 0);
         virtual float GetSampleAtTime(float time); //updates sample logic based off time and gets sample, should be in range 0,1
         virtual void AddSamples(std::unordered_map<std::string, float>, float startTime, int repetitions = 1, float timeGap = 0);
-        void Draw(); //starts draw to texture
+        void DrawWindow(); //draws window
+        void DrawSequence(); //draws sequence to back via maingui
         virtual void Update();
         virtual void Initialize(Vector2 dims);
         void LoadSong(std::string songPath);
@@ -60,6 +61,6 @@ class Sequence {
         std::vector<std::tuple<Measure, float>> measures; //don't directly add to this
         Rectangle currentPos;
         RenderTexture2D windowTex; 
-        void UpdateWindowPos();
+        void UpdateCurrentPos();
         bool wasIntersecting = false;
 };

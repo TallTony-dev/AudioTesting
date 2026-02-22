@@ -102,9 +102,11 @@ int main(int argc, char ** argv)
         BeginDrawing();
         ClearBackground(BLUE);
 
-        int bottombarcount = 0;
         for (LoadedPlugin plugin : loader.plugins) {
-            plugin.sequence->Draw();
+            plugin.sequence->DrawSequence();
+        }
+        for (LoadedPlugin plugin : loader.plugins) {
+            plugin.sequence->DrawWindow();
         }
         DrawBottomBar();
         EndDrawing();
