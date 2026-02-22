@@ -237,7 +237,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                     linestream.ignore(1, '/');
                     linestream >> measure.denominator;
                     
-                    measure.length = (60 / measure.bpm) * measure.numerator;
+                    measure.length = (60 / measure.bpm) * measure.numerator * (4.0f / measure.denominator);;
                     AddMeasureToCount(measure);
 
                 }
@@ -265,6 +265,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                     while (linestream.good()) {
                         linestream.ignore(std::numeric_limits<std::streamsize>::max(), '<');
                         if (!linestream.good()) break;
+                        properties.clear();  // reset for each chord
                         std::string paramName;
                         float paramValue = 0;
                         while (linestream.good() && linestream.peek() != '>' && linestream.peek() != EOF) {
@@ -284,10 +285,14 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                         if (linestream.peek() == '>') {
                             linestream.ignore(1);
                         }
+                        Measure mes = std::get<0>(measures[currentMeasure - 1]);
+
+                        if (properties.contains("len")) {
+                            properties["len"] *= (60 / mes.bpm) * (4.0f / mes.denominator);
+                        }
+                        AddSamples(properties, GetBeatTime(currentMeasure, startBeat), repetitions, 
+                        beatGap * (60 / mes.bpm) * (4.0f / mes.denominator));
                     }
-                    
-                    AddSamples(properties, GetBeatTime(currentMeasure, startBeat), repetitions, 
-                    beatGap * (60 / std::get<0>(measures[currentMeasure - 1]).bpm));
                 }
             }
         }
@@ -312,7 +317,7 @@ float Sequence::GetBeatTime(int measure, float beat) {
     }
     Measure measureobj = std::get<0>(measures.at(measure - 1));
     float time = std::get<1>(measures.at(measure - 1));
-    time += beat * (60 / measureobj.bpm);
+    time += beat * (60 / measureobj.bpm) * (4.0f / measureobj.denominator);
     return time;
 }
 void Sequence::AddMeasureToCount(Measure measure) {
@@ -333,8 +338,6 @@ void Sequence::UpdateMeasureTimes() {
 
 float prevTime;
 float Sequence::GetSampleAtTime(float time) {
-    float result = 0.0f;
-    int sampleCount = 0;
 
     //check if sample vectors are valid if time is not progressing normally
     if (prevTime > time) {
@@ -367,7 +370,9 @@ float Sequence::GetSampleAtTime(float time) {
         samplesAdded.push_back(samplesToAdd.front());
         samplesToAdd.erase(samplesToAdd.begin()); //pop front
     }
-
+    
+    float result = 0.0f;
+    int sampleCount = 0;
     for (auto i = activeSamples.begin(); i != activeSamples.end(); ) {
         SequenceSample seqSample = *i;
         auto sample = seqSample.sample;
@@ -383,7 +388,7 @@ float Sequence::GetSampleAtTime(float time) {
             ++i;
         }
     }
-    return sampleCount > 0 ? result / sampleCount : 0.0f;
+    return sampleCount > 0 ? result / 3 : 0.0f;
 }
 
 void Sequence::AddSamples(std::unordered_map<std::string, float>, float startTime, int repetitions, float timeGap) {

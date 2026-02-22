@@ -3,6 +3,7 @@ M - 180 4/4
 //beat, hz, volume, length in beats
 //Have chording support and pattern support, and allow sequences to add custom properties to notes with arbitrary names
 //0.5 is beat number, 2 is beat gap, 4 is repetitions
-0.5, 2 x 4 <freq 300, vol 0.8, len 2.4> <freq 150, vol 0.8, len 2.4>
-2.5 <freq 300, vol 0.8, len 2.4> <freq 150, vol 0.8, len 2.4>
-M - 180 5/4
+//len gets converted to beats
+//0, 2 x 4 <freq 160, vol 0.8, len 1> <freq 130, vol 0.8, len 1>
+//1, 2 x 4 <freq 100, vol 0.8, len 1> <freq 150, vol 0.8, len 1>
+M - 180 4/4
