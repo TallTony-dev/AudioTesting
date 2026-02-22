@@ -95,6 +95,7 @@ int main(int argc, char ** argv)
     }
     
     while (!WindowShouldClose()) {
+        UpdateWindowSelection(loader);
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->Update();
         }
@@ -103,7 +104,6 @@ int main(int argc, char ** argv)
 
         int bottombarcount = 0;
         for (LoadedPlugin plugin : loader.plugins) {
-            //that rendertex gets passed in with a window border drawn around it that allows resizing
             plugin.sequence->Draw();
         }
         DrawBottomBar();

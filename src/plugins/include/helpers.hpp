@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
-
+#ifndef RAYGUI_H
+#include "../rayinclude/raygui.h"
+#endif
 #define SAMPLERATE (44100)
 
 #define GETSIN(hz, amplitude, t, phaseDiff) (amplitude * sin(2*M_PI*t*hz + phaseDiff))
@@ -12,3 +14,5 @@ float GetSquareWave(float hz, float duty, float amplitude, float phaseDiff, floa
 
 float GetBeatTime(float bpm, int beat, int numerator, int denom);
 float GetTimeBetweenBeats(float bpm, int numerator, int denom);
+
+bool Intersects(Rectangle rect, Vector2 vec);

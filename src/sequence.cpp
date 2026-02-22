@@ -14,14 +14,17 @@
 
 
 Sequence::~Sequence() {
-    for (SequenceSample samp : activeSamples) {
-        delete samp.sample;
+    for (SequenceSample *samp : activeSamples) {
+        delete (*samp).sample;
+        delete samp;
     }
-    for (SequenceSample samp : samplesToAdd) {
-        delete samp.sample;
+    for (SequenceSample *samp : samplesToAdd) {
+        delete (*samp).sample;
+        delete samp;
     }
-    for (SequenceSample samp : samplesAdded) {
-        delete samp.sample;
+    for (SequenceSample *samp : samplesAdded) {
+        delete (*samp).sample;
+        delete samp;
     }
     if (windowTex.id != 0)
         UnloadRenderTexture(windowTex);
@@ -41,7 +44,6 @@ void Sequence::UpdateCurrentPos(Rectangle rect) {
     }
     currentPos = rect;
 }
-
 void Sequence::Initialize(Vector2 dims) { 
     name = "default";
     isWindowShown = true;
@@ -57,18 +59,26 @@ void Sequence::DrawWindowContent() {
     //Each param has a name and a float value, vector of std::tuple probably
     //params are loaded from file with sequence samples
 }
-Rectangle Sequence::GetCurrentPos() {
-    return currentPos;
-}
-
-bool Intersects(Rectangle rect, Vector2 vec) {
-    return (vec.x >= rect.x && vec.x < rect.x + rect.width &&
-        vec.y >= rect.y && vec.y < rect.y + rect.height);
-}
-
 #ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
 #define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
 #endif
+Rectangle Sequence::GetCurrentPos() {
+    return currentPos;
+}
+Rectangle Sequence::GetCurrentWindowPos() {
+    Rectangle rec = currentPos;
+    rec.y -= RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+    rec.height += RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+    return rec;
+}
+Rectangle Sequence::GetCurrentWindowPaddedPos() {
+    Rectangle rec = currentPos;
+    rec.x -= SEQWINDOWINTERACTWIDTH;
+    rec.width += SEQWINDOWINTERACTWIDTH * 2;
+    rec.y -= SEQWINDOWINTERACTWIDTH + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+    rec.height += SEQWINDOWINTERACTWIDTH * 2 + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT;
+    return rec;
+}
 
 void Sequence::Update() { 
     if (isWindowShown) {
@@ -91,101 +101,109 @@ void Sequence::Update() {
             intersectsHeader = true; }
             
         bool isMouseDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+        bool isMousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 
         // LLM: Clear stale edge selection when mouse is released
         if (!isMouseDown && selectedEdge != Edge::None) {
             selectedEdge = Edge::None;
         }
 
-        //if there was an edge selected and mouse is still down, link their positions
-        if (selectedEdge != Edge::None && isMouseDown) {
-            Vector2 delt = GetMouseDelta();
-            //if is top edge
-            if (selectedEdge == Edge::Top || selectedEdge == Edge::TopRight || selectedEdge == Edge::TopLeft) {
-                if (currentRect.height - delt.y > SEQWINDOWMINHEIGHT) {
-                    currentRect.y += delt.y;
-                    currentRect.height -= delt.y;
+        //if the window is selected or should be selected
+        if (IsWindowSelected(this)) { 
+            //if there was an edge selected and mouse is still down, link their positions
+            if (selectedEdge != Edge::None && isMouseDown) {
+                Vector2 delt = GetMouseDelta();
+                //if is top edge
+                if (selectedEdge == Edge::Top || selectedEdge == Edge::TopRight || selectedEdge == Edge::TopLeft) {
+                    if (currentRect.height - delt.y > SEQWINDOWMINHEIGHT) {
+                        currentRect.y += delt.y;
+                        currentRect.height -= delt.y;
+                    }
+                    else {
+                        currentRect.height = SEQWINDOWMINHEIGHT;
+                    }
                 }
-                else {
-                    currentRect.height = SEQWINDOWMINHEIGHT;
+                //if is bottom edge
+                else if (selectedEdge == Edge::Bottom || selectedEdge == Edge::BottomRight || selectedEdge == Edge::BottomLeft) {
+                    currentRect.height += delt.y;
                 }
-            }
-            //if is bottom edge
-            else if (selectedEdge == Edge::Bottom || selectedEdge == Edge::BottomRight || selectedEdge == Edge::BottomLeft) {
-                currentRect.height += delt.y;
-            }
-            //if is left edge
-            if (selectedEdge == Edge::Left || selectedEdge == Edge::TopLeft || selectedEdge == Edge::BottomLeft) {
-                if (currentRect.width - delt.x > SEQWINDOWMINWIDTH) {
+                //if is left edge
+                if (selectedEdge == Edge::Left || selectedEdge == Edge::TopLeft || selectedEdge == Edge::BottomLeft) {
+                    if (currentRect.width - delt.x > SEQWINDOWMINWIDTH) {
+                        currentRect.x += delt.x;
+                        currentRect.width -= delt.x;
+                    }
+                    else {
+                        currentRect.width = SEQWINDOWMINWIDTH;
+                    }
+                }
+                //if is right edge
+                else if (selectedEdge == Edge::Right || selectedEdge == Edge::TopRight || selectedEdge == Edge::BottomRight) {
+                    currentRect.width += delt.x;
+                }
+                //if the window header is selected
+                else if (selectedEdge == Edge::Header) {
                     currentRect.x += delt.x;
-                    currentRect.width -= delt.x;
+                    currentRect.y += delt.y;
+                    SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
                 }
-                else {
-                    currentRect.width = SEQWINDOWMINWIDTH;
-                }
-            }
-            //if is right edge
-            else if (selectedEdge == Edge::Right || selectedEdge == Edge::TopRight || selectedEdge == Edge::BottomRight) {
-                currentRect.width += delt.x;
-            }
-            //if the window header is selected
-            else if (selectedEdge == Edge::Header) {
-                currentRect.x += delt.x;
-                currentRect.y += delt.y;
-                SetMouseCursor(MOUSE_CURSOR_RESIZE_ALL);
-            }
 
-            UpdateCurrentPos(currentRect);
-        }
-        else if (intersectsTop || intersectsBottom || intersectsLeft || intersectsRight || intersectsHeader) {
-            wasIntersecting = true;
-            if (intersectsTop) {
-                if (intersectsRight) {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
-                    if (isMouseDown) { selectedEdge = Edge::TopRight; }
+                UpdateCurrentPos(currentRect);
+            }
+            else if (intersectsTop || intersectsBottom || intersectsLeft || intersectsRight || intersectsHeader) {
+                wasIntersecting = true;
+                if (intersectsTop) {
+                    if (intersectsRight) {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
+                        if (isMousePressed) { selectedEdge = Edge::TopRight; }
+                    }
+                    else if (intersectsLeft) {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
+                        if (isMousePressed) { selectedEdge = Edge::TopLeft; }
+                    }
+                    else {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
+                        if (isMousePressed) { selectedEdge = Edge::Top; }
+                    }
+                } 
+                else if (intersectsBottom) {
+                    if (intersectsRight) {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
+                        if (isMousePressed) { selectedEdge = Edge::BottomRight; }
+                    }
+                    else if (intersectsLeft) {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
+                        if (isMousePressed) { selectedEdge = Edge::BottomLeft; }
+                    }
+                    else {
+                        SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
+                        if (isMousePressed) { selectedEdge = Edge::Bottom; }
+                    }
                 }
                 else if (intersectsLeft) {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
-                    if (isMouseDown) { selectedEdge = Edge::TopLeft; }
+                    SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
+                    if (isMousePressed) { selectedEdge = Edge::Left; }
                 }
-                else {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
-                    if (isMouseDown) { selectedEdge = Edge::Top; }
+                else if (intersectsRight) {
+                    SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
+                    if (isMousePressed) { selectedEdge = Edge::Right; }
                 }
-            } 
-            else if (intersectsBottom) {
-                if (intersectsRight) {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
-                    if (isMouseDown) { selectedEdge = Edge::BottomRight; }
-                }
-                else if (intersectsLeft) {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
-                    if (isMouseDown) { selectedEdge = Edge::BottomLeft; }
-                }
-                else {
-                    SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
-                    if (isMouseDown) { selectedEdge = Edge::Bottom; }
+                else if (intersectsHeader) {
+                    SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
+                    if (isMousePressed) { selectedEdge = Edge::Header; }
                 }
             }
-            else if (intersectsLeft) {
-                SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
-                if (isMouseDown) { selectedEdge = Edge::Left; }
-            }
-            else if (intersectsRight) {
-                SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
-                if (isMouseDown) { selectedEdge = Edge::Right; }
-            }
-            else if (intersectsHeader) {
-                SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-                if (isMouseDown) { selectedEdge = Edge::Header; }
+            else if (wasIntersecting) {
+                wasIntersecting = false;
+                if (!isMouseDown) {
+                    selectedEdge = Edge::None;
+                }
+                SetMouseCursor(MOUSE_CURSOR_DEFAULT);
             }
         }
-        else if (wasIntersecting) {
-            wasIntersecting = false;
-            if (!isMouseDown) {
-                selectedEdge = Edge::None;
-            }
-            SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        //if isnt yet selected
+        else {
+            
         }
     }
 }
@@ -306,8 +324,8 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
 
 void Sequence::SortSamplesToAdd() {
     std::sort(samplesToAdd.begin(), samplesToAdd.end(), 
-    [](const SequenceSample& a, const SequenceSample& b) {
-        return a.startTime < b.startTime;
+    [](const SequenceSample* a, const SequenceSample* b) {
+        return (*a).startTime < (*b).startTime;
     });
 }
 
@@ -339,19 +357,20 @@ void Sequence::UpdateMeasureTimes() {
 float prevTime;
 float Sequence::GetSampleAtTime(float time) {
 
-    //check if sample vectors are valid if time is not progressing normally
+    //check if sample vectors are valid if gone back in time
     if (prevTime > time) {
         for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
+            //add samples back from samplesadded into active 
             --x;
-            SequenceSample samp = *x;
+            SequenceSample *samp = *x;
             //if the sample hasnt started yet at new time
-            if (samp.startTime > time) {
+            if ((*samp).startTime > time) {
                 samplesToAdd.insert(samplesToAdd.begin(), samp);
                 x = samplesAdded.erase(x);
                 continue;
             }
-            //if time is in the active period of the sample
-            else if (samp.startTime + samp.sample->length >= time) {
+            //if time is in the active period of the sample and it isnt already active
+            else if ((*samp).startTime + (*samp).sample->length >= time && std::find(activeSamples.begin(), activeSamples.end(), samp) != activeSamples.end()){
                 activeSamples.push_back(samp);
                 x = samplesAdded.erase(x);
                 continue;
@@ -359,13 +378,16 @@ float Sequence::GetSampleAtTime(float time) {
             //otherwise leave it in the past played samples
         }
     }
-    else if (time > prevTime + 1 / SAMPLERATE - 0.0001) {
+    //check if sample vectors are valid if jumped forward
+    else if (time > prevTime + 1 / SAMPLERATE - 0.00001) {
         //TODO: handle this
+
+
     }
     prevTime = time;
 
 
-    while (!samplesToAdd.empty() && samplesToAdd.front().startTime <= time) {
+    while (!samplesToAdd.empty() && (*samplesToAdd.front()).startTime <= time) {
         activeSamples.push_back(samplesToAdd.front());
         samplesAdded.push_back(samplesToAdd.front());
         samplesToAdd.erase(samplesToAdd.begin()); //pop front
@@ -374,14 +396,14 @@ float Sequence::GetSampleAtTime(float time) {
     float result = 0.0f;
     int sampleCount = 0;
     for (auto i = activeSamples.begin(); i != activeSamples.end(); ) {
-        SequenceSample seqSample = *i;
-        auto sample = seqSample.sample;
-        if (time >= seqSample.startTime && time <= sample->length + seqSample.startTime) {
-            result += sample->GetSample(time - seqSample.startTime) * sample->volumeMult;
+        SequenceSample *seqSample = *i;
+        auto sample = (*seqSample).sample;
+        if (time >= (*seqSample).startTime && time <= sample->length + (*seqSample).startTime) {
+            result += sample->GetSample(time - (*seqSample).startTime) * sample->volumeMult;
             sampleCount++;
             ++i;
         }
-        else if (time > sample->length + seqSample.startTime) {
+        else if (time > sample->length + (*seqSample).startTime) {
             i = activeSamples.erase(i);
         }
         else {

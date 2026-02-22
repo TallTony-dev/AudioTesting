@@ -2,7 +2,7 @@
 #include <string>
 #include "plugins/include/sequence.hpp"
 #include "plugins/include/plugininterface.hpp"
- 
+
 //mild llm usage
 struct LoadedPlugin {
     void* handle;

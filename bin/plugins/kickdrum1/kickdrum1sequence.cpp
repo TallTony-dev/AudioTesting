@@ -39,7 +39,7 @@ void KickDrum1Sequence::DrawWindowContent() {
 void KickDrum1Sequence::AddSamples(std::unordered_map<std::string, float> params, float startTime, int repetitions, float timeGap) {
     for (int i = 0; i < repetitions; i++) {
         KickDrum *drum = new KickDrum(params);
-        samplesToAdd.push_back(SequenceSample{drum, startTime + timeGap * i});
+        samplesToAdd.push_back(new SequenceSample{drum, startTime + timeGap * i});
     }
     //TODO: make sure these are sorted
 }

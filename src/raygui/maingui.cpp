@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "../plugins/include/sequence.hpp"
 #include <vector>
+#include "../plugins/include/helpers.hpp"
 
 int bottomBarIndexCount;
 bool BottomBarButton(std::string name, int barIndex) {
@@ -34,9 +35,42 @@ void DrawBottomBar() {
     }
 }
 
+Sequence *selectedSequence;
+bool IsWindowSelected(Sequence *window) {
+    return (window == selectedSequence);
+}
+void SetWindowSelected(Sequence *window) {
+    selectedSequence = window;
+}
+//check for if mouse is clicked at a point which doesnt intersect selected window but does select another
+//also make sure that the last window drawn is the one selected as it is the first shown
+void UpdateWindowSelection(PluginLoader &plugins) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mousePos = GetMousePosition();
+
+        for (auto x = plugins.plugins.end(); x != plugins.plugins.begin();) {
+            x--;
+            LoadedPlugin plugin = (*x);
+            Sequence *seq = plugin.sequence;
+            if (x == plugins.plugins.end() - 1) {
+                SetWindowSelected(seq); //just in case it isnt already, very cheap op
+                if (Intersects(seq->GetCurrentWindowPaddedPos(), mousePos)) {
+                    break;
+                }
+            }
+            else if (Intersects(seq->GetCurrentWindowPos(), mousePos)) {
+                //Move that sequence to the back of the sequence list
+                plugins.plugins.erase(x);
+                plugins.plugins.push_back(plugin);
+                SetWindowSelected(seq);
+            }
+        }
+    }
+}
+
 bool DrawWindowBoxAround(Rectangle rect, std::string name) {
     const float borderWidth = 1;
     Rectangle guiBox = {.width = rect.width + borderWidth * 2, .height = rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
     .x = rect.x - borderWidth, .y = rect.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT + borderWidth};
-    return GuiWindowBox(guiBox, "pluginwindow");
+    return GuiWindowBox(guiBox, name.c_str());
 }

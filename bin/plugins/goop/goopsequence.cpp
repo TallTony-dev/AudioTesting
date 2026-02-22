@@ -39,7 +39,7 @@ void GoopSequence::DrawWindowContent() {
 void GoopSequence::AddSamples(std::unordered_map<std::string, float> params, float startTime, int repetitions, float timeGap) {
     for (int i = 0; i < repetitions; i++) {
         Goop *goop = new Goop(params);
-        samplesToAdd.push_back(SequenceSample{goop, startTime + timeGap * i});
+        samplesToAdd.push_back(new SequenceSample{goop, startTime + timeGap * i});
     }
     //TODO: make sure these are sorted
 }
