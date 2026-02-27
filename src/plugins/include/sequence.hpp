@@ -9,6 +9,7 @@
 #define SEQWINDOWINTERACTWIDTH 6
 #define SEQWINDOWMINHEIGHT 48
 #define SEQWINDOWMINWIDTH 32
+
 typedef struct measure {
     float bpm;
     float length;
@@ -40,12 +41,13 @@ class Sequence {
         Rectangle GetCurrentPos(); //exclude header
         Rectangle GetCurrentWindowPos(); //include header
         Rectangle GetCurrentWindowPaddedPos(); //include side padding for resize
+        std::vector<SequenceSample*> GetAllSamples();
+        std::vector<std::tuple<Measure, float>> GetMeasures(); //float is measure start time
     protected:
         virtual void LoadSequenceSamples(std::string filePath); //load sequence file
         virtual void DrawWindowContent(); //called after setting up drawing to window
         //Draw to the window as you normally would draw to any window, as TextureMode is enabled
 
-        Sample *sampleType;
         std::vector<SequenceSample*> activeSamples;
         std::vector<SequenceSample*> samplesToAdd;
         std::vector<SequenceSample*> samplesAdded;

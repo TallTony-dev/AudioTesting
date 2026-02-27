@@ -13,6 +13,13 @@ void AddToBottomBar(Sequence *seq);
 void RemoveFromBottomBar(Sequence *seq); //safely tries to remove if exists
 void DrawBottomBar();
 
+
+#define SEQUENCEBARHEIGHT 60
+
+void AddToSequenceBar(Sequence *seq);
+bool RemoveFromSequenceBar(Sequence *seq); //true if removed
+void DrawSequenceBars();
+
 bool IsWindowSelected(Sequence *window);
 void SetWindowSelected(Sequence *window);
 void UpdateWindowSelection(PluginLoader &plugins);

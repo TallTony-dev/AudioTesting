@@ -4,6 +4,7 @@
 #include "raygui/raygui.h"
 #include "plugins/include/helpers.hpp"
 #include <fstream>
+#include <vector>
 #include <iostream>
 #include <sstream>
 #include <ranges>
@@ -64,6 +65,7 @@ void Sequence::Initialize(Vector2 dims) {
     name = "default";
     isWindowShown = true;
     windowTex = LoadRenderTexture(dims.x, dims.y);
+    AddToSequenceBar(this);
     currentPos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
 }
 void Sequence::DrawWindowContent() {
@@ -74,6 +76,14 @@ void Sequence::DrawWindowContent() {
     //Use a list of params that come from a certain selected sequence sample by the main gui sequence draw
     //Each param has a name and a float value, vector of std::tuple probably
     //params are loaded from file with sequence samples
+}
+std::vector<SequenceSample*> Sequence::GetAllSamples() {
+    std::vector<SequenceSample *> samps = samplesToAdd;
+    samps.insert(samps.end(), samplesAdded.begin(), samplesAdded.end());
+    return samps;
+}
+std::vector<std::tuple<Measure, float>> Sequence::GetMeasures() {
+    return measures;
 }
 
 Rectangle Sequence::GetCurrentPos() {
@@ -220,11 +230,6 @@ void Sequence::Update() {
             
         }
     }
-}
-
-void Sequence::DrawSequence() {
-    //jbkn
-    //draw to the back via mainsequence
 }
 
 void Sequence::DrawWindow() {

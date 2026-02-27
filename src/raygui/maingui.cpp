@@ -35,6 +35,37 @@ void DrawBottomBar() {
     }
 }
 
+std::vector<Sequence *> sequenceBarseqs;
+void AddToSequenceBar(Sequence *seq) {
+    sequenceBarseqs.push_back(seq);
+}
+bool RemoveFromSequenceBar(Sequence *seq) {
+    for (auto x = sequenceBarseqs.begin(); x != sequenceBarseqs.end(); x++) {
+        if (*x == seq) {
+            sequenceBarseqs.erase(x);
+            return true;
+        }
+    }
+    return false;
+}
+void DrawSequenceBars() {
+    int currentInd = 0;
+    for (Sequence *seq : sequenceBarseqs) {
+        std::vector<SequenceSample*> samps = seq->GetAllSamples();
+        std::vector<std::tuple<Measure, float>> tups = seq->GetMeasures();
+        float screenHeight = GetScreenHeight();
+        float screenWidth = GetScreenWidth();
+        float height = SEQUENCEBARHEIGHT;
+        GuiPanel(Rectangle{0, height * currentInd, screenWidth, height}, seq->name.c_str());
+        for (std::tuple<Measure, float> tup : tups) {
+            Measure measure = std::get<0>(tup);
+            float mesStartTime = std::get<1>(tup);
+            
+        }
+        currentInd++;
+    }
+}
+
 Sequence *selectedSequence;
 bool IsWindowSelected(Sequence *window) {
     return (window == selectedSequence);

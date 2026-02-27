@@ -102,9 +102,7 @@ int main(int argc, char ** argv)
         BeginDrawing();
         ClearBackground(BLUE);
 
-        for (LoadedPlugin plugin : loader.plugins) {
-            plugin.sequence->DrawSequence();
-        }
+        DrawSequenceBars();
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->DrawWindow();
         }
