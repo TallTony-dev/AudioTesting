@@ -18,22 +18,26 @@ PluginLoader loader;
 
 //Some LLM use for the base code for miniaudio output
 int ind = 0;
+bool playing = true;
+float currentTime;
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
+    if (playing) {
     float* output = (float*)pOutput;
 
-    for (ma_uint32 i = 0; i < frameCount; i++)
-    {
-        float resultantSample = 0;
-        float t = (float)ind / SAMPLERATE;
+        for (ma_uint32 i = 0; i < frameCount; i++)
+        {
+            float resultantSample = 0;
+            currentTime = (float)ind / SAMPLERATE;
 
-        for (LoadedPlugin plugin : loader.plugins) {
-            resultantSample += plugin.sequence->GetSampleAtTime(t);
+            for (LoadedPlugin plugin : loader.plugins) {
+                resultantSample += plugin.sequence->GetSampleAtTime(currentTime);
+            }
+
+            *output++ = resultantSample;
+
+            ind++;
         }
-
-        *output++ = resultantSample;
-
-        ind++;
     }
 }
 
@@ -102,9 +106,15 @@ int main(int argc, char ** argv)
         BeginDrawing();
         ClearBackground(BLUE);
 
+        UpdateGui();
+
         DrawSequenceBars();
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->DrawWindow();
+        }
+
+        if (DrawPlayButton()) {
+            playing = !playing;
         }
         DrawBottomBar();
         EndDrawing();

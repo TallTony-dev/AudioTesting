@@ -60,10 +60,15 @@ void DrawSequenceBars() {
         for (std::tuple<Measure, float> tup : tups) {
             Measure measure = std::get<0>(tup);
             float mesStartTime = std::get<1>(tup);
-            
+
         }
         currentInd++;
     }
+}
+
+Rectangle playButtonRect;
+bool DrawPlayButton() {
+    return GuiLabelButton(playButtonRect, "play");
 }
 
 Sequence *selectedSequence;
@@ -104,4 +109,12 @@ bool DrawWindowBoxAround(Rectangle rect, std::string name) {
     Rectangle guiBox = {.width = rect.width + borderWidth * 2, .height = rect.height + RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT, 
     .x = rect.x - borderWidth, .y = rect.y - RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT + borderWidth};
     return GuiWindowBox(guiBox, name.c_str());
+}
+bool isFirst = true;
+void UpdateGui() {
+    if (IsWindowResized() || isFirst) {
+        Vector2 window = {(float)GetScreenWidth(),(float)GetScreenHeight()};
+        playButtonRect = {window.x * 0.5f - PLAYBUTTONWIDTH, TOPBARHEIGHT,PLAYBUTTONWIDTH, PLAYBUTTONHEIGHT};
+        isFirst = false;
+    }
 }

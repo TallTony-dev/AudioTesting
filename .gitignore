@@ -2,3 +2,5 @@ obj
 bin/out.wav
 bin/build_osx
 *.wav
+*.dylib
+*.dll
