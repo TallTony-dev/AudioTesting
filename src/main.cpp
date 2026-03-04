@@ -9,37 +9,12 @@
 #include "raygui/raygui.h"
 #include "pluginloader.hpp"
 #include "raygui/maingui.hpp"
+#include "playback.hpp"
 #include <iostream>
 
 
 #define BUF_SIZE (SAMPLERATE*10)
 
-PluginLoader loader;
-
-//Some LLM use for the base code for miniaudio output
-int ind = 0;
-bool playing = true;
-float currentTime;
-void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
-{
-    if (playing) {
-    float* output = (float*)pOutput;
-
-        for (ma_uint32 i = 0; i < frameCount; i++)
-        {
-            float resultantSample = 0;
-            currentTime = (float)ind / SAMPLERATE;
-
-            for (LoadedPlugin plugin : loader.plugins) {
-                resultantSample += plugin.sequence->GetSampleAtTime(currentTime);
-            }
-
-            *output++ = resultantSample;
-
-            ind++;
-        }
-    }
-}
 
 short int buffer[BUF_SIZE];
 void CreateWavFile() {
@@ -66,47 +41,29 @@ int main(int argc, char ** argv)
 
     loader.LoadPlugin("kickdrum1");
     loader.LoadPlugin("goop");
+
     if (loader.plugins.size() > 0) {
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->LoadSong("./songs/song1/");
         }
     }
     else {
-        std::cout << "Pluging not loaded?";
+        std::cout << "Plugins not loaded?";
+    }
+
+    if (InitializePlayback() != 0) {
+        std::cout << "Initializing playback failed";
+        return -1;
     }
 
     
-    ma_device_config deviceConfig;
-    ma_device device;
-    
-    deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format   = ma_format_f32;
-    deviceConfig.playback.channels = 1;
-    deviceConfig.sampleRate        = SAMPLERATE;
-    deviceConfig.dataCallback      = data_callback;
-    
-    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
-    {
-        printf("Failed to initialize audio device.\n");
-        return -1;
-    }
-    
-    if (ma_device_start(&device) != MA_SUCCESS)
-    {
-        printf("Failed to start audio device.\n");
-        ma_device_uninit(&device);
-        return -1;
-    }
-    
     while (!WindowShouldClose()) {
-        UpdateWindowSelection(loader);
+        UpdateGui(loader);
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->Update();
         }
         BeginDrawing();
         ClearBackground(BLUE);
-
-        UpdateGui();
 
         DrawSequenceBars();
         for (LoadedPlugin plugin : loader.plugins) {
@@ -119,10 +76,7 @@ int main(int argc, char ** argv)
         DrawBottomBar();
         EndDrawing();
     }
-    
-    ma_device_uninit(&device);
-    printf("Audio stopped.\n");
-    
+    DeinitializePlayback();
     CreateWavFile();
     return 0;
 }

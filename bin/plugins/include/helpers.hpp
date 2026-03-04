@@ -3,7 +3,6 @@
 #ifndef RAYGUI_H
 #include "../rayinclude/raygui.h"
 #endif
-#define SAMPLERATE (44100)
 
 #define GETSIN(hz, amplitude, t, phaseDiff) (amplitude * sin(2*M_PI*t*hz + phaseDiff))
 #define RANDOMFLOAT ((float)(std::rand()) / (float)(RAND_MAX))

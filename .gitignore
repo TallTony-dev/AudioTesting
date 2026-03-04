@@ -4,3 +4,4 @@ bin/build_osx
 *.wav
 *.dylib
 *.dll
+bin/build_osx

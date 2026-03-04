@@ -12,6 +12,7 @@
 #include <string>
 #include <algorithm>
 #include <exception>
+#include "playback.hpp"
 
 #ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
 #define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
@@ -279,7 +280,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                     linestream.ignore(1, '/');
                     linestream >> measure.denominator;
                     
-                    measure.length = (60 / measure.bpm) * measure.numerator * (4.0f / measure.denominator);;
+                    measure.length = (60 / measure.bpm) * measure.numerator * (4.0f / measure.denominator);
                     AddMeasureToCount(measure);
 
                 }
@@ -376,13 +377,11 @@ void Sequence::UpdateMeasureTimes() {
     }
 }
 
-
-
 float prevTime;
 float Sequence::GetSampleAtTime(float time) {
-
     //check if sample vectors are valid if gone back in time
     if (prevTime > time) {
+        activeSamples.clear();
         for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
             //add samples back from samplesadded into active 
             --x;

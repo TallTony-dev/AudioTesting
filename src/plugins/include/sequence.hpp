@@ -32,7 +32,7 @@ class Sequence {
         virtual float GetSampleAtTime(float time); //updates sample logic based off time and gets sample, should be in range 0,1
         virtual void AddSamples(std::unordered_map<std::string, float>, float startTime, int repetitions = 1, float timeGap = 0);
         void DrawWindow(); //draws window
-        void DrawSequence(); //draws sequence to back via maingui
+        //void DrawSequence(); //draws sequence to back via maingui
         virtual void Update();
         virtual void Initialize(Vector2 dims);
         void LoadSong(std::string songPath);
@@ -56,6 +56,7 @@ class Sequence {
         Edge selectedEdge = Edge::None;
         float GetBeatTime(int measure, float beat); //measures are 1 indexed
         void SortSamplesToAdd();
+        float prevTime = 0;
     private:
         void AddMeasureToCount(Measure measure);
         void UpdateMeasureTimes();
