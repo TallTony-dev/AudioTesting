@@ -381,7 +381,6 @@ float prevTime;
 float Sequence::GetSampleAtTime(float time) {
     //check if sample vectors are valid if gone back in time
     if (prevTime > time) {
-        activeSamples.clear();
         for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
             //add samples back from samplesadded into active 
             --x;
@@ -390,12 +389,13 @@ float Sequence::GetSampleAtTime(float time) {
             if ((*samp).startTime > time) {
                 samplesToAdd.insert(samplesToAdd.begin(), samp);
                 x = samplesAdded.erase(x);
+                std::erase(activeSamples, samp);
                 continue;
             }
             //if time is in the active period of the sample and it isnt already active
-            else if ((*samp).startTime + (*samp).sample->length >= time && std::find(activeSamples.begin(), activeSamples.end(), samp) != activeSamples.end()){
+            else if ((*samp).startTime + (*samp).sample->length >= time
+            && activeSamples.end() == std::find(activeSamples.begin(), activeSamples.end(), samp)){
                 activeSamples.push_back(samp);
-                x = samplesAdded.erase(x);
                 continue;
             }
             //otherwise leave it in the past played samples
@@ -404,7 +404,7 @@ float Sequence::GetSampleAtTime(float time) {
     //check if sample vectors are valid if jumped forward
     else if (time > prevTime + 1 / SAMPLERATE - 0.00001) {
         //TODO: handle this
-
+        
 
     }
     prevTime = time;

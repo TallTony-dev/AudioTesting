@@ -3,7 +3,7 @@
 PluginLoader loader;
 
 
-bool playing = true;
+bool playing = false;
 float currentTime = 0;
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
     if (playing) {

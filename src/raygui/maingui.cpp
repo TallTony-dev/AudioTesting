@@ -58,13 +58,14 @@ float timeLeftSide = 0;
 float timeRightSide = 5;
 float ConvertTimeToXPos(float time) {
     float deltaTime = timeRightSide - timeLeftSide;
-    float width = GetScreenWidth();
+    float width = GetScreenWidth() - SIDEBARTOTALWIDTH;
     float scale = width / deltaTime;
-    return scale * (time - timeLeftSide);
+    return scale * (time - timeLeftSide) + SIDEBARTOTALWIDTH;
 }
 float ConvertXPosToTime(float xPos) {
     float deltaTime = timeRightSide - timeLeftSide;
-    float width = GetScreenWidth();
+    xPos -= SIDEBARTOTALWIDTH;
+    float width = GetScreenWidth() - SIDEBARTOTALWIDTH;
     float scale = width / deltaTime;
     return (xPos / scale) + timeLeftSide;
 }
@@ -75,7 +76,7 @@ std::string inline FloatToStr(float val, int precision) {
     return str.str();
 }
 
-#define TIMEBARRECT (Rectangle{0,(float)(FILEBARHEIGHT + TOOLBARHEIGHT), (float)GetScreenWidth(), (float)TIMEBARHEIGHT})
+#define TIMEBARRECT (Rectangle{SIDEBARTOTALWIDTH,(float)(FILEBARHEIGHT + TOOLBARHEIGHT), (float)GetScreenWidth() - SIDEBARTOTALWIDTH, (float)TIMEBARHEIGHT})
 void DrawTimeBar() {
     //get significant digit
     float deltaTime = timeRightSide - timeLeftSide;
@@ -90,6 +91,9 @@ void DrawTimeBar() {
     }
 
     float y = (FILEBARHEIGHT + TOOLBARHEIGHT);
+
+    //draw bg
+    DrawRectangleRec(TIMEBARRECT, GRAY);
     //draw major ticks
     for (float time = firstTime; time < firstTime + sig * 30; time += sig) {
         if (time > timeLeftSide && time < timeRightSide) {
@@ -100,7 +104,7 @@ void DrawTimeBar() {
     }
 }
 void UpdateTimeBar() {
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && !isClickUsed) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
         if (Intersects(TIMEBARRECT, GetMousePosition())) {
             currentTime = ConvertXPosToTime(GetMouseX());
             isClickUsed = true;
@@ -114,16 +118,20 @@ void DrawSequenceBars() {
         std::vector<SequenceSample*> samps = seq->GetAllSamples();
         std::vector<std::tuple<Measure, float>> tups = seq->GetMeasures();
         float screenHeight = GetScreenHeight();
-        float screenWidth = GetScreenWidth();
+        float screenWidth = GetScreenWidth() - SIDEBARTOTALWIDTH;
         float height = SEQUENCEBARHEIGHT;
+        float x = SIDEBARTOTALWIDTH;
         float yTop = height * currentInd + TOPBARTOTALHEIGHT;
         
-        GuiPanel(Rectangle{0, yTop, screenWidth, height}, seq->name.c_str());
+        GuiPanel(Rectangle{x, yTop, screenWidth, height}, seq->name.c_str());
         //draw measures
         for (std::tuple<Measure, float> tup : tups) {
             Measure measure = std::get<0>(tup);
             float mesStartTime = std::get<1>(tup);
-            DrawRectangle(ConvertTimeToXPos(mesStartTime), yTop, MEASUREBARWIDTH, height, GREEN);
+            float mesx = ConvertTimeToXPos(mesStartTime);
+            if (mesx >= x && mesx <= screenWidth) {
+                DrawRectangle(mesx, yTop, MEASUREBARWIDTH, height, GREEN);
+            }
         }
         //draw current time line
         if (currentTime > timeLeftSide && currentTime < timeRightSide) {

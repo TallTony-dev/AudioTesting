@@ -27,6 +27,7 @@ void AddToBottomBar(Sequence *seq);
 void RemoveFromBottomBar(Sequence *seq); //safely tries to remove if exists
 void DrawBottomBar();
 
+#define SIDEBARTOTALWIDTH 40
 
 #define FILEBARHEIGHT 10
 #define TOOLBARHEIGHT 10
