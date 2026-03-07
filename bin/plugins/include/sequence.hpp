@@ -47,7 +47,7 @@ class Sequence {
         virtual void LoadSequenceSamples(std::string filePath); //load sequence file
         virtual void DrawWindowContent(); //called after setting up drawing to window
         //Draw to the window as you normally would draw to any window, as TextureMode is enabled
-
+        
         std::vector<SequenceSample*> activeSamples;
         std::vector<SequenceSample*> samplesToAdd;
         std::vector<SequenceSample*> samplesAdded;

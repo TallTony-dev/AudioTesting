@@ -6,6 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include "../playback.hpp"
 #include "../plugins/include/helpers.hpp"
 
@@ -99,8 +100,13 @@ void DrawTimeBar() {
         if (time > timeLeftSide && time < timeRightSide) {
             float x = ConvertTimeToXPos(time);
             DrawRectangle(x, y, TIMETICKWIDTH, TIMETICKHEIGHT, PURPLE);
-            DrawText(FloatToStr(time, 4).c_str(), x, TIMETICKHEIGHT, 10, BLACK);
+            DrawText(FloatToStr(time, std::clamp(-power, 0, 10)).c_str(), x, TIMETICKHEIGHT, 10, BLACK);
         }
+    }
+    //draw current time line
+    if (currentTime > timeLeftSide && currentTime < timeRightSide) {
+        float timePos = ConvertTimeToXPos(currentTime) - TIMELINEWIDTH;
+        DrawRectangle(timePos, TOPBARTOTALHEIGHT, TIMELINEWIDTH, GetScreenHeight() - TOPBARTOTALHEIGHT, BLACK);
     }
 }
 void UpdateTimeBar() {
@@ -114,6 +120,7 @@ void UpdateTimeBar() {
 
 void DrawSequenceBars() {
     int currentInd = 0;
+    
     for (Sequence *seq : sequenceBarseqs) {
         std::vector<SequenceSample*> samps = seq->GetAllSamples();
         std::vector<std::tuple<Measure, float>> tups = seq->GetMeasures();
@@ -123,7 +130,8 @@ void DrawSequenceBars() {
         float x = SIDEBARTOTALWIDTH;
         float yTop = height * currentInd + TOPBARTOTALHEIGHT;
         
-        GuiPanel(Rectangle{x, yTop, screenWidth, height}, seq->name.c_str());
+        DrawRectangle(x, yTop, screenWidth, height, LIGHTGRAY);
+        DrawText(seq->name.c_str(), x, yTop, 20, BLACK);
         //draw measures
         for (std::tuple<Measure, float> tup : tups) {
             Measure measure = std::get<0>(tup);
@@ -133,11 +141,22 @@ void DrawSequenceBars() {
                 DrawRectangle(mesx, yTop, MEASUREBARWIDTH, height, GREEN);
             }
         }
-        //draw current time line
-        if (currentTime > timeLeftSide && currentTime < timeRightSide) {
-            float timePos = ConvertTimeToXPos(currentTime);
-            DrawRectangle(timePos, TOPBARTOTALHEIGHT, TIMELINEWIDTH, GetScreenHeight() - TOPBARTOTALHEIGHT, BLACK);
+        //draw samples
+        for (SequenceSample *samp : seq->GetAllSamples()) {
+            float sampx = ConvertTimeToXPos(samp->startTime);
+            float sampy = yTop;
+            float sampWidth = ConvertTimeToXPos(samp->startTime + samp->sample->length) - sampx;
+            float sampHeight = height;
+            float freq = samp->sample->freq;
+            if (freq > 0) {
+                sampHeight = 3;
+                sampy = yTop + height - sampHeight - std::clamp((freq - 100) / 5, 0.0f, height);
+            }
+            if (sampx + sampWidth >= x && sampx <= screenWidth) {
+                DrawRectangle(sampx, sampy, sampWidth, sampHeight, DARKGREEN);
+            }
         }
+
         currentInd++;
     }
     DrawTimeBar();
