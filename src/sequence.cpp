@@ -11,6 +11,8 @@
 #include <string_view>
 #include <string>
 #include <algorithm>
+#include <cmath>
+#include <unordered_set>
 #include <exception>
 #include "playback.hpp"
 
@@ -68,19 +70,37 @@ void Sequence::Initialize(Vector2 dims) {
     windowTex = LoadRenderTexture(dims.x, dims.y);
     AddToSequenceBar(this);
     currentPos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
+    seqHeight = 60;
 }
 void Sequence::DrawWindowContent() {
     //defined in derived classes
     //note isWindowResized for use here
+    if (selectedSamp != nullptr) {
+        bool hasPropertyChanges = false;
+        int count = 0;
+        for (auto &[name, prop] : selectedSamp->sample->properties) {
 
-    //TODO: Have a default implementation here
-    //Use a list of params that come from a certain selected sequence sample by the main gui sequence draw
-    //Each param has a name and a float value, vector of std::tuple probably
-    //params are loaded from file with sequence samples
+            float height = 60;
+            float width = 60;
+            float x = 0;
+            float y = count * height;
+            float priorValue = prop.val;
+            GuiSliderBar({x,y,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
+            , &prop.val, prop.min, prop.max);
+            if (prop.val != priorValue) {
+                hasPropertyChanges = true;
+            }
+
+            count++;
+        }
+        if (hasPropertyChanges) {
+            selectedSamp->sample->ApplyProperties();
+        }
+    }
 }
 std::vector<SequenceSample*> Sequence::GetAllSamples() {
-    std::vector<SequenceSample *> samps = samplesToAdd;
-    samps.insert(samps.end(), samplesAdded.begin(), samplesAdded.end());
+    std::vector<SequenceSample *> samps = samplesAdded;
+    samps.insert(samps.end(), samplesToAdd.begin(), samplesToAdd.end());
     return samps;
 }
 std::vector<std::tuple<Measure, float>> Sequence::GetMeasures() {
@@ -176,7 +196,7 @@ void Sequence::Update() {
                 UpdateCurrentPos(currentRect);
             }
             else if (intersectsTop || intersectsBottom || intersectsLeft || intersectsRight || intersectsHeader) {
-                wasIntersecting = true;
+                wasWindowIntersecting = true;
                 if (intersectsTop) {
                     if (intersectsRight) {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
@@ -218,8 +238,8 @@ void Sequence::Update() {
                     if (isMousePressed) { selectedEdge = Edge::Header; }
                 }
             }
-            else if (wasIntersecting) {
-                wasIntersecting = false;
+            else if (wasWindowIntersecting) {
+                wasWindowIntersecting = false;
                 if (!isMouseDown) {
                     selectedEdge = Edge::None;
                 }
@@ -231,11 +251,12 @@ void Sequence::Update() {
             
         }
     }
+    
 }
 
 void Sequence::DrawWindow() {
     if (isWindowShown) {
-        if (DrawWindowBoxAround(currentPos, name)) {
+        if (CreateWindowBoxAround(currentPos, name)) {
             isWindowShown = false;
             AddToBottomBar(this);
             SetMouseCursor(MOUSE_CURSOR_DEFAULT);
@@ -243,10 +264,13 @@ void Sequence::DrawWindow() {
         BeginTextureMode(windowTex);
 
         ClearBackground(GREEN);
+
+        SetMouseOffset(-currentPos.x,-currentPos.y);
         DrawWindowContent();
+        SetMouseOffset(0,0);
 
         EndTextureMode();
-        DrawTexture(windowTex.texture, currentPos.x, currentPos.y, WHITE);
+        DrawTextureRec(windowTex.texture, {0,0,(float)windowTex.texture.width,-(float)windowTex.texture.height}, {currentPos.x, currentPos.y}, WHITE);
     }
 }
 
@@ -255,7 +279,99 @@ Sequence::Sequence() {
 }
 
 void Sequence::LoadSong(std::string songPath) {
+
+    for (SequenceSample *samp : GetAllSamples()) {
+        delete samp->sample;
+        delete samp;
+    }
+
+    activeSamples.clear();
+    samplesToAdd.clear();
+    samplesAdded.clear();
+    measures.clear();
+    lastDrawnSamples.clear();
+    selectedSamp = nullptr;
+    highlightedSamp = nullptr;
+    prevTime = 0.0f;
+
     LoadSequenceSamples(songPath + name + "/" + name + "seq.txt");
+    loadedSongPath = songPath;
+}
+
+float Sequence::GetBeatAtTime(float time) {
+    std::tuple<Measure, float> *measureAtTime = GetMeasureAtTime(time);
+    if (measureAtTime == nullptr) {
+        throw std::invalid_argument("No measure found for requested time");
+    }
+    std::tuple<Measure, float> tup = *measureAtTime;
+    Measure mes = std::get<0>(tup);
+    float startTime = std::get<1>(tup);
+    time -= startTime;
+    float beat = time / ((60 / mes.bpm) * (4.0f / mes.denominator));
+    return beat;
+}
+void Sequence::SaveLoadedSong() {
+    SaveSong(loadedSongPath);
+}
+void Sequence::SaveSong(std::string songPath) {
+    std::string pathish = songPath + name + "/" + name;
+    std::ofstream ostream(pathish + "seqtemp.txt");
+    if (!ostream.is_open()) {    
+        throw std::invalid_argument("Error creating the file/output stream, possibly invalid path");
+    }
+
+    std::vector<SequenceSample *> samps = GetAllSamples();
+    std::sort(samps.begin(), samps.end(), 
+    [](const SequenceSample* a, const SequenceSample* b) {
+        return (*a).startTime < (*b).startTime;
+    });
+
+    if (samps.empty()) {
+        ostream.close();
+        std::filesystem::rename(pathish + "seqtemp.txt", pathish + "seq.txt");
+        return;
+    }
+    if (measures.empty()) {
+        throw std::invalid_argument("Cannot save sequence with no measures");
+    }
+
+    size_t currentMeasure = 0;
+    Measure mes = std::get<0>(measures[currentMeasure]);
+    ostream << std::format("M - {} {}/{}", mes.bpm, mes.numerator, mes.denominator) << std::endl;
+
+    for (auto iter = samps.begin(); iter != samps.end();) {
+        SequenceSample *samp = *iter;
+        while (currentMeasure + 1 < measures.size() && std::get<1>(measures[currentMeasure + 1]) <= samp->startTime) {
+            currentMeasure++;
+            mes = std::get<0>(measures[currentMeasure]);
+            //serialize measure into ostream here
+            ostream << std::format("M - {} {}/{}", mes.bpm, mes.numerator, mes.denominator) << std::endl;
+        }
+        //serialize samples into ostream here
+        float beat = GetBeatAtTime(samp->startTime);
+        if (std::abs(beat) < 0.0001f) {
+            beat = 0.0f;
+        }
+        float beatLen = (60 / mes.bpm) * (4.0f / mes.denominator);
+        ostream << std::format("{}, 0 x 1 ", beat);
+
+        do {
+            samp = *iter;
+            ostream << "<";
+            for (auto &[name, prop] : samp->sample->properties) {
+                float writeVal = prop.val;
+                if (name == "len" && beatLen > 0.0f) {
+                    writeVal = prop.val / beatLen;
+                }
+                ostream << name << " " << writeVal << ",";
+            }
+            ostream << "> ";
+        } while ((++iter != samps.end()) && ((*(iter - 1))->startTime == (*iter)->startTime));
+        if (iter != samps.end()) { ostream << std::endl; }
+    }
+    ostream.close();
+    std::filesystem::rename(pathish + "seqtemp.txt", pathish + "seq.txt");
+    //std::filesystem::remove(pathish + "seqtemp.txt");
 }
 
 void Sequence::LoadSequenceSamples(std::string filePath) {
@@ -269,7 +385,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
         while (!inputStream.eof()) {
             std::getline(inputStream, lineStr);
             currentLine++;
-            if (lineStr.substr(0,2) != "//") {
+            if (lineStr.compare(0, 2, "//") != 0) {
                 std::stringstream linestream(lineStr);
                 if (linestream.peek() == 'M') {
                     currentMeasure++;
@@ -288,7 +404,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                     float startBeat;
                     int repetitions = 1;
                     float beatGap = 0;
-                    std::unordered_map<std::string, float> properties;
+                    std::unordered_map<std::string, SampleProperty> properties;
                     if (!(linestream >> startBeat)) {
                         std::cout << "issue loading startbeat from file at line " << currentLine << "\n";
                     }
@@ -311,6 +427,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                         properties.clear();  // reset for each chord
                         std::string paramName;
                         float paramValue = 0;
+                        SampleProperty prop{};
                         while (linestream.good() && linestream.peek() != '>' && linestream.peek() != EOF) {
                             if (!(linestream >> paramName)) {
                                 std::cout << "issue loading paramName from file at line " << currentLine << "\n";
@@ -320,7 +437,8 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                                 std::cout << "issue loading paramValue from file at line " << currentLine << "\n";
                                 break;
                             }
-                            properties.emplace(paramName, paramValue);
+                            prop.val = paramValue;
+                            properties.emplace(paramName, prop);
                             if (linestream.peek() == ',') {
                                 linestream.ignore(1);
                             }
@@ -331,7 +449,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
                         Measure mes = std::get<0>(measures[currentMeasure - 1]);
 
                         if (properties.contains("len")) {
-                            properties["len"] *= (60 / mes.bpm) * (4.0f / mes.denominator);
+                            properties["len"].val *= (60 / mes.bpm) * (4.0f / mes.denominator);
                         }
                         AddSamples(properties, GetBeatTime(currentMeasure, startBeat), repetitions, 
                         beatGap * (60 / mes.bpm) * (4.0f / mes.denominator));
@@ -346,9 +464,25 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
         std::cout << "Failed to open file: " << filePath;
     }
 }
-
+void Sequence::AddSequenceSample(SequenceSample *seqSamp, float startTime) {
+    if (startTime > currentTime) {
+        samplesToAdd.push_back(seqSamp);
+        SortSamplesToAdd();
+    }
+    else {
+        activeSamples.push_back(seqSamp);
+        samplesAdded.push_back(seqSamp);
+        SortSamplesAdded();
+    }
+}
 void Sequence::SortSamplesToAdd() {
     std::sort(samplesToAdd.begin(), samplesToAdd.end(), 
+    [](const SequenceSample* a, const SequenceSample* b) {
+        return (*a).startTime < (*b).startTime;
+    });
+}
+void Sequence::SortSamplesAdded() {
+    std::sort(samplesAdded.begin(), samplesAdded.end(), 
     [](const SequenceSample* a, const SequenceSample* b) {
         return (*a).startTime < (*b).startTime;
     });
@@ -436,13 +570,18 @@ float Sequence::GetSampleAtTime(float time) {
     return sampleCount > 0 ? result / 3 : 0.0f;
 }
 
-void Sequence::AddSamples(std::unordered_map<std::string, float>, float startTime, int repetitions, float timeGap) {
-    //should be defined in derived classes
+std::tuple<Measure, float> *Sequence::GetMeasureAtTime(float time) {
+    for (auto &meas : measures) {
+        Measure measure = std::get<0>(meas);
+        float startTime = std::get<1>(meas);
+        if (time >= startTime && time < startTime + measure.length) {
+            return &meas;
+        }
+    }
+    return nullptr;
 }
-// void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, float startTime, float freqMult, float length, int repetitions, float timeGap) {
-//     for (int i = 0; i < repetitions; i++) {
-//         SequenceSample sequenceSample { sample, startTime + timeGap * i, freqMult};
-//         sequenceSample.sample.get()->length = length;
-//         activeSamples.push_back(sequenceSample);
-//     }
-// }
+
+SequenceSample *Sequence::AddSamples(std::unordered_map<std::string, SampleProperty>, float startTime, int repetitions, float timeGap) {
+    //should be defined in derived classesf
+    return nullptr;
+}

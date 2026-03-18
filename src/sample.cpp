@@ -1,7 +1,7 @@
 #include "plugins/include/sample.hpp"
 #include <exception>
 
-void Sample::ApplyProperties(std::unordered_map<std::string, float> properties) {
+void Sample::ApplyProperties() {
     //defined in derived classes
     throw std::runtime_error("Base sample class init shouldn't be called");
 }

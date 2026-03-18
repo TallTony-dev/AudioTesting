@@ -4,7 +4,7 @@
 
 class Goop : public Sample {
     public:
-        Goop(std::unordered_map<std::string, float> properties);
-        void ApplyProperties(std::unordered_map<std::string, float> properties) override;
+        Goop(std::unordered_map<std::string, SampleProperty> properties);
+        void ApplyProperties() override;
         float GetSample(float time) override;
 };

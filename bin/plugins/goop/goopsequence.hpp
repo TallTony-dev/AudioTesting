@@ -8,7 +8,7 @@
 class GoopSequence : public Sequence {
     public:
         float GetSampleAtTime(float time) override;
-        void AddSamples(std::unordered_map<std::string, float> , float startTime, int repetitions = 1, float timeGap = 0) override;
+        SequenceSample *AddSamples(std::unordered_map<std::string, SampleProperty> , float startTime, int repetitions = 1, float timeGap = 0) override;
         void Update() override; //called each loop to update any logic in samples
         void Initialize(Vector2 dims) override;
         void DrawWindowContent() override;

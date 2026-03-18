@@ -1,8 +1,30 @@
 M - 120 4/4
-//beat, hz, volume, length in beats
-//Have chording support and pattern support, and allow sequences to add custom properties to notes with arbitrary names
-//0.5 is beat number, 2 is beat gap, 4 is repetitions
-//len gets converted to beats
-0, 1 x 15 <freq 160, vol 0.8, len 1> <freq 130, vol 0.8, len 1>
-0, 1.33333 x 12 <freq 100, vol 0.8, len 1> <freq 150, vol 0.8, len 1>
-M - 120 2/4
+0, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+1.33333, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+2, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
+2.66666, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+3, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+3.99999, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+M - 120 4/4
+0, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
+1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+1.3333201, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+2.6666503, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+3, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
+3.99998, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+M - 120 4/4
+0, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+1, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
+1.3333101, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+2.6666403, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+3, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+3.9999704, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+M - 120 4/4
+0, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+1.3333006, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
+2.6666307, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 

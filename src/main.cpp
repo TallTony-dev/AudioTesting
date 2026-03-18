@@ -46,6 +46,12 @@ int main(int argc, char ** argv)
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->LoadSong("./songs/song1/");
         }
+        for (LoadedPlugin plugin : loader.plugins) {
+            plugin.sequence->SaveSong("./songs/song1/");
+        }
+        for (LoadedPlugin plugin : loader.plugins) {
+            plugin.sequence->LoadSong("./songs/song1/");
+        }
     }
     else {
         std::cout << "Plugins not loaded?";
@@ -64,15 +70,12 @@ int main(int argc, char ** argv)
         }
         BeginDrawing();
         ClearBackground(BLUE);
-
-        DrawSequenceBars();
+        
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->DrawWindow();
         }
 
-        if (DrawPlayButton()) {
-            playing = !playing;
-        }
+        
         DrawBottomBar();
         EndDrawing();
     }

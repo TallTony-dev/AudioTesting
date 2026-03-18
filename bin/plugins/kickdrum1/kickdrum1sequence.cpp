@@ -22,24 +22,18 @@ void KickDrum1Sequence::Update() {
     //update any custom logic
 }
 void KickDrum1Sequence::DrawWindowContent() {
-    if (GuiButton((Rectangle){ 24, 24, 120, 30 }, "#191#Show Message")) 
-        showMessageBox = true;
-        
-    if (showMessageBox)
-    {
-        int result = GuiMessageBox((Rectangle){ 85, 70, 250, 100 },
-            "#191#Message Box", "Hi! This is a message!", "Nice;Cool");
-
-        if (result >= 0) showMessageBox = false;
-    }
     Rectangle currentPos = GetCurrentPos();
     DrawRectangle(0,0,currentPos.width, currentPos.height, RED);
+    Sequence::DrawWindowContent();
 }
 
-void KickDrum1Sequence::AddSamples(std::unordered_map<std::string, float> params, float startTime, int repetitions, float timeGap) {
+SequenceSample *KickDrum1Sequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, float startTime, int repetitions, float timeGap) {
+    KickDrum *samp;
+    SequenceSample *seqSamp;
     for (int i = 0; i < repetitions; i++) {
-        KickDrum *drum = new KickDrum(params);
-        samplesToAdd.push_back(new SequenceSample{drum, startTime + timeGap * i});
+        samp = new KickDrum(params);
+        seqSamp = new SequenceSample{samp, startTime + timeGap * i};
+        AddSequenceSample(seqSamp, startTime);
     }
-    //TODO: make sure these are sorted
+    return seqSamp;
 }

@@ -22,24 +22,19 @@ void GoopSequence::Update() {
     //update any custom logic
 }
 void GoopSequence::DrawWindowContent() {
-    if (GuiButton((Rectangle){ 24, 24, 120, 30 }, "#191#Show Message")) 
-        showMessageBox = true;
-        
-    if (showMessageBox)
-    {
-        int result = GuiMessageBox((Rectangle){ 85, 70, 250, 100 },
-            "#191#Message Box", "Hi! This is a message!", "Nice;Cool");
-
-        if (result >= 0) showMessageBox = false;
-    }
+    
     Rectangle currentPos = GetCurrentPos();
-    DrawRectangle(0,0,currentPos.width, currentPos.height, RED);
+    DrawRectangle(0,0,currentPos.width, currentPos.height, BLUE);
+    Sequence::DrawWindowContent();
 }
 
-void GoopSequence::AddSamples(std::unordered_map<std::string, float> params, float startTime, int repetitions, float timeGap) {
+SequenceSample *GoopSequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, float startTime, int repetitions, float timeGap) {
+    Goop *samp;
+    SequenceSample *seqSamp;
     for (int i = 0; i < repetitions; i++) {
-        Goop *goop = new Goop(params);
-        samplesToAdd.push_back(new SequenceSample{goop, startTime + timeGap * i});
+        samp = new Goop(params);
+        seqSamp = new SequenceSample{samp, startTime + timeGap * i};
+        AddSequenceSample(seqSamp, startTime);
     }
-    //TODO: make sure these are sorted
+    return seqSamp;
 }

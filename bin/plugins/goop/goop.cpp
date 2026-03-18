@@ -2,20 +2,27 @@
 #include "../include/helpers.hpp"
 #include <unordered_map>
 
-Goop::Goop(std::unordered_map<std::string, float> properties) {
+Goop::Goop(std::unordered_map<std::string, SampleProperty> _properties) {
     length = 0.5;
     volumeMult = 1;
-    ApplyProperties(properties);    
+    properties = _properties;  
+    ApplyProperties();
 }
-void Goop::ApplyProperties(std::unordered_map<std::string, float> properties) {
+void Goop::ApplyProperties() {
     if (properties.contains("len")) {
-        length = properties["len"];
+        length = properties["len"].val;
+        properties["len"].min = 0;
+        properties["len"].max = 10;
     }
     if (properties.contains("vol")) {
-        volumeMult = properties["vol"];
+        volumeMult = properties["vol"].val;
+        properties["vol"].min = 0;
+        properties["vol"].max = 1;
     }
     if (properties.contains("freq")) {
-        freq = properties["freq"];
+        freq = properties["freq"].val;
+        properties["freq"].min = 25;
+        properties["freq"].max = 500;
     }
 }
 

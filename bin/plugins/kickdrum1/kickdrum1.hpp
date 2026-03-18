@@ -4,7 +4,7 @@
 
 class KickDrum : public Sample {
     public:
-        KickDrum(std::unordered_map<std::string, float> properties);
-        void ApplyProperties(std::unordered_map<std::string, float> properties) override;
+        KickDrum(std::unordered_map<std::string, SampleProperty> properties);
+        void ApplyProperties() override;
         float GetSample(float time) override;
 };
