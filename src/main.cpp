@@ -41,14 +41,9 @@ int main(int argc, char ** argv)
 
     loader.LoadPlugin("kickdrum1");
     loader.LoadPlugin("goop");
+    loader.LoadPlugin("ambient1");
 
     if (loader.plugins.size() > 0) {
-        for (LoadedPlugin plugin : loader.plugins) {
-            plugin.sequence->LoadSong("./songs/song1/");
-        }
-        for (LoadedPlugin plugin : loader.plugins) {
-            plugin.sequence->SaveSong("./songs/song1/");
-        }
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->LoadSong("./songs/song1/");
         }
@@ -64,10 +59,12 @@ int main(int argc, char ** argv)
 
     
     while (!WindowShouldClose()) {
-        UpdateGui(loader);
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        isClickUsed = false;
         for (LoadedPlugin plugin : loader.plugins) {
             plugin.sequence->Update();
         }
+        UpdateGui(loader);
         BeginDrawing();
         ClearBackground(BLUE);
         

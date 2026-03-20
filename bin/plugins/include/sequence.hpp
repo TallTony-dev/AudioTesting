@@ -28,7 +28,7 @@ typedef struct drawnSample {
     Rectangle rect;
 } DrawnSample;
 
-
+extern bool isClickUsed; //redefinition of the thing in maingui.hpp for use by other seqs
 extern float currentTime; //redefinition of the thing in manigui.hpp for use by other seqs
 
 enum Edge {None, Bottom, BottomRight, BottomLeft, Left, TopLeft, Top, TopRight, Right, Header };
@@ -50,6 +50,7 @@ class Sequence {
         void SaveLoadedSong();
         std::string name;
         bool isWindowShown; //true if close button hasnt been pressed
+        bool hasWindow = true; // can be set to false in derived classes to not have window box
         Rectangle GetCurrentPos(); //exclude header
         Rectangle GetCurrentWindowPos(); //include header
         Rectangle GetCurrentWindowPaddedPos(); //include side padding for resize
@@ -57,11 +58,12 @@ class Sequence {
         std::vector<std::tuple<Measure, float>> GetMeasures(); //float is measure start time
         std::vector<DrawnSample> lastDrawnSamples;
         SequenceSample *selectedSamp = nullptr;
-        SequenceSample *highlightedSamp = nullptr;
+        SequenceSample *ghostSamp = nullptr;
         std::tuple<Measure, float> *GetMeasureAtTime(float time);
         float seqHeight;
         float seqYPos;
         bool wasSeqResizeSelected;
+        bool wasSelectedSampMoveSelected;
     protected:
         virtual void LoadSequenceSamples(std::string filePath); //load sequence file
         virtual void DrawWindowContent(); //called after setting up drawing to window

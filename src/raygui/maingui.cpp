@@ -70,6 +70,44 @@ float ConvertXPosToTime(float xPos) {
     float scale = width / deltaTime;
     return (xPos / scale) + timeLeftSide;
 }
+float ConvertDeltaXPosToTime(float xPos) {
+    float deltaTime = timeRightSide - timeLeftSide;
+    float width = GetScreenWidth();
+    float scale = width / deltaTime;
+    return (xPos / scale) + timeLeftSide;
+}
+
+//returns the length of a beat in the nearest measure to a time
+float GetBeatLengthAtTime(float time, Sequence *seq) {
+    std::tuple<Measure, float> *m = seq->GetMeasureAtTime(time);
+    if (m != nullptr) {
+        Measure measure = std::get<0>(*m);
+        float mesStartTime = std::get<1>(*m);
+
+        return measure.length / measure.denominator;
+    }
+    return 1;
+}
+//returns the starttime of the nearest beat to the given time and seq
+float SnapToBeat(float time, Sequence *seq) {
+    std::tuple<Measure, float> *m = seq->GetMeasureAtTime(time);
+    if (m != nullptr) {
+        Measure measure = std::get<0>(*m);
+        float mesStartTime = std::get<1>(*m);
+
+        float timepersubsec = measure.length / measure.denominator;
+        int beat = 0;
+        for (int i = 0; i < measure.denominator; i++) { 
+            if (time > mesStartTime + timepersubsec * i && time < mesStartTime + timepersubsec * (i + 1)) {
+                beat = i;
+                break;
+            }
+        }
+
+        return beat * timepersubsec + mesStartTime;
+    }
+    return time;
+}
 
 std::string inline FloatToStr(float val, int precision) {
     std::stringstream str;
@@ -186,61 +224,61 @@ void UpdateSequenceBars() {
             Rectangle bottomRect = {SIDEBARTOTALWIDTH, seqYPos + currentSeqHeight, (float)GetScreenWidth() - SIDEBARTOTALWIDTH,SEQUENCEBARBORDERWIDTH};
             if (Intersects(bottomRect,mousePos)) {
                 SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
                     seq->wasSeqResizeSelected = true;
                     isClickUsed = true;
                 }
             }
             
             if (seq->wasSeqResizeSelected) {
-                seq->seqHeight += GetMouseDelta().y;
                 if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
                     seq->wasSeqResizeSelected = false;
+                    break;
+                }
+                seq->seqHeight += GetMouseDelta().y;
+            }
+
+            if (seq->wasSelectedSampMoveSelected) {
+                if (!IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+                    seq->wasSelectedSampMoveSelected = false;
+                    break;
+                }
+                if (!snapToBeats) {
+                    seq->selectedSamp->startTime += ConvertDeltaXPosToTime(GetMouseDelta().x);
+                }
+                else {
+                    seq->selectedSamp->startTime = SnapToBeat(ConvertXPosToTime(mousePos.x), seq);
                 }
             }
+
             if (seq->seqHeight < MINSEQUENCEBARHEIGHT) {
                 seq->seqHeight = MINSEQUENCEBARHEIGHT;
             }
 
-            if (seq->highlightedSamp != nullptr) {
-                delete seq->highlightedSamp->sample;
-                delete seq->highlightedSamp;
-                seq->highlightedSamp = nullptr;
+            if (seq->ghostSamp != nullptr) {
+                delete seq->ghostSamp->sample;
+                delete seq->ghostSamp;
+                seq->ghostSamp = nullptr;
             }
             if (Intersects({SIDEBARTOTALWIDTH, seqYPos, (float)GetScreenWidth() - SIDEBARTOTALWIDTH, seq->seqHeight}, mousePos)) {
                 //manage click on actual sequence bar with draw tool here
                 if (interactionState == INTERACT_ADDNOTE) {
-                    seq->highlightedSamp = new SequenceSample();
-                    seq->highlightedSamp->sample = new Sample();
-                    seq->highlightedSamp->sample->length = 1;
+                    seq->ghostSamp = new SequenceSample();
+                    seq->ghostSamp->sample = new Sample();
+                    seq->ghostSamp->sample->length = 1;
 
                     if (!snapToBeats) {
-                        seq->highlightedSamp->startTime = ConvertXPosToTime(mousePos.x);
+                        seq->ghostSamp->startTime = ConvertXPosToTime(mousePos.x);
                     }
                     else {
                         float tim = ConvertXPosToTime(mousePos.x);
-                        std::tuple<Measure, float> *m = seq->GetMeasureAtTime(tim);
-                        if (m != nullptr) {
-                            Measure measure = std::get<0>(*m);
-                            float mesStartTime = std::get<1>(*m);
-
-                            float timepersubsec = measure.length / measure.denominator;
-                            int beat = 0;
-                            for (int i = 0; i < measure.denominator; i++) { 
-                                if (tim > mesStartTime + timepersubsec * i && tim < mesStartTime + timepersubsec * (i + 1)) {
-                                    beat = i;
-                                    break;
-                                }
-                            }
-
-                            seq->highlightedSamp->startTime = beat * timepersubsec + mesStartTime;
-                            seq->highlightedSamp->sample->length = timepersubsec;
-                        }
+                        seq->ghostSamp->startTime = SnapToBeat(tim, seq);
+                        seq->ghostSamp->sample->length = GetBeatLengthAtTime(tim, seq);
                     }
-                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                        if (seq->highlightedSamp != nullptr) {
+                    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
+                        if (seq->ghostSamp != nullptr) {
                             std::unordered_map<std::string, SampleProperty> props {{"vol", {1,0,1}}, {"freq", {50,0,500}}, {"len", {1,0,10}}};
-                            seq->selectedSamp = seq->AddSamples(props, seq->highlightedSamp->startTime);
+                            seq->selectedSamp = seq->AddSamples(props, seq->ghostSamp->startTime);
                         }
                     }
 
@@ -248,8 +286,13 @@ void UpdateSequenceBars() {
                 //manage selecting different sequence samps here
                 else if (interactionState == INTERACT_DEFAULT) {
                     for (DrawnSample samp : seq->lastDrawnSamples) {
-                        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && Intersects(samp.rect, mousePos)) {
-                            seq->selectedSamp = samp.samp;
+                        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && Intersects(samp.rect, mousePos) && !isClickUsed) {
+                            if (seq->selectedSamp != samp.samp) {
+                                seq->selectedSamp = samp.samp;
+                            }
+                            else {
+                                seq->wasSelectedSampMoveSelected = true;
+                            }
                             isClickUsed = true;
                         }
                     }
@@ -294,16 +337,20 @@ void DrawSequenceBars() {
         }
         //draw samples
         std::vector allSamps = seq->GetAllSamples();
-        if (seq->highlightedSamp != nullptr) {
-            allSamps.push_back(seq->highlightedSamp);
+
+        if (seq->ghostSamp != nullptr) {
+            //add to the list because it normally isnt there
+            allSamps.push_back(seq->ghostSamp);
         }
 
         for (auto i = allSamps.begin(); i != allSamps.end(); i++) {
             SequenceSample *samp = *i;
+            bool isSelectedSamp = samp == seq->selectedSamp;
             float sampx = ConvertTimeToXPos(samp->startTime);
             float sampy = yTop;
             float sampWidth = ConvertTimeToXPos(samp->startTime + samp->sample->length) - sampx;
             float sampHeight = height;
+            Color col = DARKGREEN;
             float freq = samp->sample->freq;
             if (freq > 0) {
                 sampHeight = 3;
@@ -313,9 +360,12 @@ void DrawSequenceBars() {
                 //TODO: handle non freq based drawing here
             }
             
+            if (isSelectedSamp) {
+                col = DARKPURPLE;
+            }
 
             if (sampx + sampWidth >= x && sampx <= screenWidth + x) {
-                DrawRectangle(sampx, sampy, sampWidth, sampHeight, DARKGREEN);
+                DrawRectangle(sampx, sampy, sampWidth, sampHeight, col);
                 seq->lastDrawnSamples.push_back({samp, {sampx, sampy, sampWidth, sampHeight}});
             }
         }
@@ -389,8 +439,6 @@ void UpdateGui(PluginLoader &plugins) {
         Vector2 window = {(float)GetScreenWidth(),(float)GetScreenHeight()};
         // playButtonRect = {window.x * 0.5f - PLAYBUTTONWIDTH, TOPBARTOTALHEIGHT,PLAYBUTTONWIDTH, PLAYBUTTONHEIGHT};
     }
-    isClickUsed = false;
-    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
     UpdateWindowSelection(plugins);
     DrawSequenceBars();
     UpdateSequenceBars();

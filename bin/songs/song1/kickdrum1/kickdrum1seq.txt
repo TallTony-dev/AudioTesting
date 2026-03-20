@@ -1,30 +1,27 @@
 M - 120 4/4
-0, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-1.33333, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-2, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
-2.66666, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-3, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-3.99999, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
+0, 0 x 1 <vol 0.8,len 0.5,freq 150,> <vol 0.8,len 0.5,freq 230,> <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 100,> 
+1, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> <vol 0.8,len 0.5,freq 150,> <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 260,> 
+2, 0 x 1 <vol 0.8,len 0.5,freq 230,> <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 100,> 
+3, 0 x 1 <vol 0.8,len 0.5,freq 230,> <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+3.99999, 0 x 1 <vol 0.8,len 0.372396,freq 267.293,> <vol 0.8,len 0.5,freq 100,> 
 M - 120 4/4
-0, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
-1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-1.3333201, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-2.6666503, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
-3, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
-3.99998, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+1, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+1.3333201, 0 x 1 <vol 0.8,len 0.5,freq 150,> <vol 0.8,len 0.5,freq 100,> 
+2, 0 x 1 <vol 0.8,len 0.5,freq 150,> <vol 0.8,len 0.5,freq 230,> 
+2.6666503, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 
+3, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+3.99998, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 
 M - 120 4/4
-0, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-1, 0 x 1 <vol 0.8,freq 230,len 0.5,> <vol 0.8,freq 260,len 0.5,> 
-1.3333101, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-2.6666403, 0 x 1 <vol 0.8,freq 150,len 0.5,> <vol 0.8,freq 100,len 0.5,> 
-3, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-3.9999704, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+0, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+1, 0 x 1 <vol 0.8,len 0.5,freq 230,> <vol 0.8,len 0.5,freq 260,> 
+1.3333101, 0 x 1 <vol 0.8,len 0.5,freq 150,> <vol 0.8,len 0.5,freq 100,> 
+2, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+2.6666403, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 
+3, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+3.9999704, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 
 M - 120 4/4
-0, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-1, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-1.3333006, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
-2, 0 x 1 <vol 0.8,freq 260,len 0.5,> <vol 0.8,freq 230,len 0.5,> 
-2.6666307, 0 x 1 <vol 0.8,freq 100,len 0.5,> <vol 0.8,freq 150,len 0.5,> 
+0, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+1, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+1.3333006, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 
+2, 0 x 1 <vol 0.8,len 0.5,freq 260,> <vol 0.8,len 0.5,freq 230,> 
+2.6666307, 0 x 1 <vol 0.8,len 0.5,freq 100,> <vol 0.8,len 0.5,freq 150,> 

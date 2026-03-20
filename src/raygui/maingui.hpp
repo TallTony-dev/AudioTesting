@@ -13,7 +13,7 @@ class Sequence; // forward declaration to avoid circular include
 extern int interactionState;
 
 extern bool snapToBeats;
-// extern bool snapToNotes = false;
+extern bool isClickUsed;
 
 #define TIMESCROLLSENSITIVITY 0.01
 #define TIMESCALESENSITIVITY 0.01

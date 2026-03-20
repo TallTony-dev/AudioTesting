@@ -23,7 +23,7 @@ else                                      # Linux / other
     LDFLAGS     := -shared
 endif
 
-PLUGIN_NAME := kickdrum1
+PLUGIN_NAME := ambient1
 TARGET      := $(BINDIR)/$(PLUGIN_NAME)$(SHARED_EXT)
 
 # ── Sources & objects ────────────────────────────────────────

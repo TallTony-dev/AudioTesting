@@ -82,7 +82,7 @@ void Sequence::DrawWindowContent() {
 
             float height = 60;
             float width = 60;
-            float x = 0;
+            float x = 30;
             float y = count * height;
             float priorValue = prop.val;
             GuiSliderBar({x,y,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
@@ -200,42 +200,42 @@ void Sequence::Update() {
                 if (intersectsTop) {
                     if (intersectsRight) {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
-                        if (isMousePressed) { selectedEdge = Edge::TopRight; }
+                        if (isMousePressed) { selectedEdge = Edge::TopRight; isClickUsed = true;}
                     }
                     else if (intersectsLeft) {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
-                        if (isMousePressed) { selectedEdge = Edge::TopLeft; }
+                        if (isMousePressed) { selectedEdge = Edge::TopLeft; isClickUsed = true;}
                     }
                     else {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
-                        if (isMousePressed) { selectedEdge = Edge::Top; }
+                        if (isMousePressed) { selectedEdge = Edge::Top; isClickUsed = true;}
                     }
                 } 
                 else if (intersectsBottom) {
                     if (intersectsRight) {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NWSE);
-                        if (isMousePressed) { selectedEdge = Edge::BottomRight; }
+                        if (isMousePressed) { selectedEdge = Edge::BottomRight; isClickUsed = true;}
                     }
                     else if (intersectsLeft) {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NESW);
-                        if (isMousePressed) { selectedEdge = Edge::BottomLeft; }
+                        if (isMousePressed) { selectedEdge = Edge::BottomLeft; isClickUsed = true;}
                     }
                     else {
                         SetMouseCursor(MOUSE_CURSOR_RESIZE_NS);
-                        if (isMousePressed) { selectedEdge = Edge::Bottom; }
+                        if (isMousePressed) { selectedEdge = Edge::Bottom; isClickUsed = true;}
                     }
                 }
                 else if (intersectsLeft) {
                     SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
-                    if (isMousePressed) { selectedEdge = Edge::Left; }
+                    if (isMousePressed) { selectedEdge = Edge::Left; isClickUsed = true;}
                 }
                 else if (intersectsRight) {
                     SetMouseCursor(MOUSE_CURSOR_RESIZE_EW);
-                    if (isMousePressed) { selectedEdge = Edge::Right; }
+                    if (isMousePressed) { selectedEdge = Edge::Right; isClickUsed = true;}
                 }
                 else if (intersectsHeader) {
                     SetMouseCursor(MOUSE_CURSOR_POINTING_HAND);
-                    if (isMousePressed) { selectedEdge = Edge::Header; }
+                    if (isMousePressed) { selectedEdge = Edge::Header; isClickUsed = true;}
                 }
             }
             else if (wasWindowIntersecting) {
@@ -255,7 +255,7 @@ void Sequence::Update() {
 }
 
 void Sequence::DrawWindow() {
-    if (isWindowShown) {
+    if (isWindowShown && hasWindow) {
         if (CreateWindowBoxAround(currentPos, name)) {
             isWindowShown = false;
             AddToBottomBar(this);
@@ -291,7 +291,7 @@ void Sequence::LoadSong(std::string songPath) {
     measures.clear();
     lastDrawnSamples.clear();
     selectedSamp = nullptr;
-    highlightedSamp = nullptr;
+    ghostSamp = nullptr;
     prevTime = 0.0f;
 
     LoadSequenceSamples(songPath + name + "/" + name + "seq.txt");
