@@ -103,7 +103,7 @@ std::vector<SequenceSample*> Sequence::GetAllSamples() {
     samps.insert(samps.end(), samplesToAdd.begin(), samplesToAdd.end());
     return samps;
 }
-std::vector<std::tuple<Measure, float>> Sequence::GetMeasures() {
+std::vector<std::tuple<Measure, double>> Sequence::GetMeasures() {
     return measures;
 }
 
@@ -126,7 +126,7 @@ Rectangle Sequence::GetCurrentWindowPaddedPos() {
 }
 
 void Sequence::Update() { 
-    if (isWindowShown) {
+    if (isWindowShown && hasWindow) {
         Vector2 mousePos = GetMousePosition();
         bool intersectsTop = false;
         bool intersectsBottom = false;
@@ -256,10 +256,12 @@ void Sequence::Update() {
 
 void Sequence::DrawWindow() {
     if (isWindowShown && hasWindow) {
-        if (CreateWindowBoxAround(currentPos, name)) {
+        if (CreateWindowBoxAround(currentPos, name) && !isClickUsed) {
             isWindowShown = false;
             AddToBottomBar(this);
             SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+            isClickUsed = true;
+            return;
         }
         BeginTextureMode(windowTex);
 
@@ -298,14 +300,14 @@ void Sequence::LoadSong(std::string songPath) {
     loadedSongPath = songPath;
 }
 
-float Sequence::GetBeatAtTime(float time) {
-    std::tuple<Measure, float> *measureAtTime = GetMeasureAtTime(time);
+float Sequence::GetBeatAtTime(double time) {
+    std::tuple<Measure, double> *measureAtTime = GetMeasureAtTime(time);
     if (measureAtTime == nullptr) {
         throw std::invalid_argument("No measure found for requested time");
     }
-    std::tuple<Measure, float> tup = *measureAtTime;
+    std::tuple<Measure, double> tup = *measureAtTime;
     Measure mes = std::get<0>(tup);
-    float startTime = std::get<1>(tup);
+    double startTime = std::get<1>(tup);
     time -= startTime;
     float beat = time / ((60 / mes.bpm) * (4.0f / mes.denominator));
     return beat;
@@ -464,7 +466,7 @@ void Sequence::LoadSequenceSamples(std::string filePath) {
         std::cout << "Failed to open file: " << filePath;
     }
 }
-void Sequence::AddSequenceSample(SequenceSample *seqSamp, float startTime) {
+void Sequence::AddSequenceSample(SequenceSample *seqSamp, double startTime) {
     if (startTime > currentTime) {
         samplesToAdd.push_back(seqSamp);
         SortSamplesToAdd();
@@ -493,7 +495,7 @@ float Sequence::GetBeatTime(int measure, float beat) {
         throw std::invalid_argument("Can't get beat time of a measure out of bounds");
     }
     Measure measureobj = std::get<0>(measures.at(measure - 1));
-    float time = std::get<1>(measures.at(measure - 1));
+    double time = std::get<1>(measures.at(measure - 1));
     time += beat * (60 / measureobj.bpm) * (4.0f / measureobj.denominator);
     return time;
 }
@@ -502,17 +504,17 @@ void Sequence::AddMeasureToCount(Measure measure) {
     UpdateMeasureTimes();
 }
 void Sequence::UpdateMeasureTimes() {
-    float countedTime = 0;
+    double countedTime = 0;
     for (auto &element : measures) {
         Measure measure = std::get<0>(element);
-        float time = countedTime;
+        double time = countedTime;
         countedTime += measure.length;
         element = std::tuple(measure, time);
     }
 }
 
-float prevTime;
-float Sequence::GetSampleAtTime(float time) {
+double prevTime;
+float Sequence::GetSampleAtTime(double time) {
     //check if sample vectors are valid if gone back in time
     if (prevTime > time) {
         for (auto x = samplesAdded.end(); x != samplesAdded.begin();) {
@@ -567,13 +569,13 @@ float Sequence::GetSampleAtTime(float time) {
             ++i;
         }
     }
-    return sampleCount > 0 ? result / 3 : 0.0f;
+    return sampleCount > 0 ? result / 4 * seqVolume : 0.0f;
 }
 
-std::tuple<Measure, float> *Sequence::GetMeasureAtTime(float time) {
+std::tuple<Measure, double> *Sequence::GetMeasureAtTime(double time) {
     for (auto &meas : measures) {
         Measure measure = std::get<0>(meas);
-        float startTime = std::get<1>(meas);
+        double startTime = std::get<1>(meas);
         if (time >= startTime && time < startTime + measure.length) {
             return &meas;
         }
@@ -581,7 +583,7 @@ std::tuple<Measure, float> *Sequence::GetMeasureAtTime(float time) {
     return nullptr;
 }
 
-SequenceSample *Sequence::AddSamples(std::unordered_map<std::string, SampleProperty>, float startTime, int repetitions, float timeGap) {
+SequenceSample *Sequence::AddSamples(std::unordered_map<std::string, SampleProperty>, double startTime, int repetitions, double timeGap) {
     //should be defined in derived classesf
     return nullptr;
 }

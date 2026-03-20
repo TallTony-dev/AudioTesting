@@ -6,7 +6,7 @@ EXPORT_SEQUENCE(TemplateSequence)
 void TemplateSequence::LoadSequenceSamples(std::string filePath) {
     Sequence::LoadSequenceSamples(filePath);
 }
-float TemplateSequence::GetSampleAtTime(float time) {
+float TemplateSequence::GetSampleAtTime(double time) {
     return Sequence::GetSampleAtTime(time);
 }
 
@@ -28,7 +28,7 @@ void TemplateSequence::DrawWindowContent() {
     Sequence::DrawWindowContent();
 }
 
-SequenceSample *TemplateSequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, float startTime, int repetitions, float timeGap) {
+SequenceSample *TemplateSequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, double startTime, int repetitions, double timeGap) {
     Template *samp;
     SequenceSample *seqSamp;
     for (int i = 0; i < repetitions; i++) {

@@ -4,7 +4,7 @@ PluginLoader loader;
 
 
 bool playing = false;
-float currentTime = 0;
+double currentTime = 0;
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount) {
     if (playing) {
     float* output = (float*)pOutput;
@@ -15,7 +15,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
             currentTime += (float)1 / SAMPLERATE;
 
             for (LoadedPlugin plugin : loader.plugins) {
-                resultantSample += plugin.sequence->GetSampleAtTime(currentTime) * plugin.sequence->seqVolume;
+                resultantSample += plugin.sequence->GetSampleAtTime(currentTime);
             }
 
             *output++ = resultantSample;

@@ -26,6 +26,6 @@ void Template::ApplyProperties() {
     }
 }
 
-float Template::GetSample(float time) {
+float Template::GetSample(double time) {
     return GETSIN(300, 1, time, 0);
 }

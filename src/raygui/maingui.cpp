@@ -55,47 +55,47 @@ bool RemoveFromSequenceBar(Sequence *seq) {
     return false;
 }
 
-float timeLeftSide = 0;
-float timeRightSide = 5;
-float ConvertTimeToXPos(float time) {
-    float deltaTime = timeRightSide - timeLeftSide;
+double timeLeftSide = 0;
+double timeRightSide = 5;
+float ConvertTimeToXPos(double time) {
+    double deltaTime = timeRightSide - timeLeftSide;
     float width = GetScreenWidth() - SIDEBARTOTALWIDTH;
     float scale = width / deltaTime;
     return scale * (time - timeLeftSide) + SIDEBARTOTALWIDTH;
 }
 float ConvertXPosToTime(float xPos) {
-    float deltaTime = timeRightSide - timeLeftSide;
+    double deltaTime = timeRightSide - timeLeftSide;
     xPos -= SIDEBARTOTALWIDTH;
     float width = GetScreenWidth() - SIDEBARTOTALWIDTH;
     float scale = width / deltaTime;
     return (xPos / scale) + timeLeftSide;
 }
 float ConvertDeltaXPosToTime(float xPos) {
-    float deltaTime = timeRightSide - timeLeftSide;
+    double deltaTime = timeRightSide - timeLeftSide;
     float width = GetScreenWidth();
     float scale = width / deltaTime;
     return (xPos / scale) + timeLeftSide;
 }
 
 //returns the length of a beat in the nearest measure to a time
-float GetBeatLengthAtTime(float time, Sequence *seq) {
-    std::tuple<Measure, float> *m = seq->GetMeasureAtTime(time);
+float GetBeatLengthAtTime(double time, Sequence *seq) {
+    std::tuple<Measure, double> *m = seq->GetMeasureAtTime(time);
     if (m != nullptr) {
         Measure measure = std::get<0>(*m);
-        float mesStartTime = std::get<1>(*m);
+        double mesStartTime = std::get<1>(*m);
 
         return measure.length / measure.denominator;
     }
     return 1;
 }
 //returns the starttime of the nearest beat to the given time and seq
-float SnapToBeat(float time, Sequence *seq) {
-    std::tuple<Measure, float> *m = seq->GetMeasureAtTime(time);
+float SnapToBeat(double time, Sequence *seq) {
+    std::tuple<Measure, double> *m = seq->GetMeasureAtTime(time);
     if (m != nullptr) {
         Measure measure = std::get<0>(*m);
-        float mesStartTime = std::get<1>(*m);
+        double mesStartTime = std::get<1>(*m);
 
-        float timepersubsec = measure.length / measure.denominator;
+        double timepersubsec = measure.length / measure.denominator;
         int beat = 0;
         for (int i = 0; i < measure.denominator; i++) { 
             if (time > mesStartTime + timepersubsec * i && time < mesStartTime + timepersubsec * (i + 1)) {
@@ -154,10 +154,10 @@ void UpdateAndDrawTopBars() {
 void UpdateAndDrawSideBar() {
     //have volume and mixing stuff here
     DrawRectangle(0,TOOLBARHEIGHT + FILEBARHEIGHT,SIDEBARTOTALWIDTH,GetScreenHeight() - TOOLBARHEIGHT - FILEBARHEIGHT, DARKBROWN);
-    float cumHeight = 0;
+    float cumHeight = TOPBARTOTALHEIGHT;
     for (Sequence *seq : sequenceBarseqs) {
-        GuiSlider({0, cumHeight, 20, 10}, "", "volume", &seq->seqVolume, 0, 1);
-        
+        GuiSliderBar({0, cumHeight, 20, 10}, "", "volume", &seq->seqVolume, 0, 1);
+
         cumHeight += seq->seqHeight;
     }
 
@@ -169,10 +169,10 @@ void UpdateAndDrawSideBar() {
 #define TIMEBARRECT (Rectangle{SIDEBARTOTALWIDTH,(float)(FILEBARHEIGHT + TOOLBARHEIGHT), (float)GetScreenWidth() - SIDEBARTOTALWIDTH, (float)TIMEBARHEIGHT})
 void DrawTimeBar() {
     //get significant digit
-    float deltaTime = timeRightSide - timeLeftSide;
+    double deltaTime = timeRightSide - timeLeftSide;
     int power = std::round(std::log10(deltaTime) - 0.8);
     float sig = std::pow(10, power);
-    float firstTime;
+    double firstTime;
     if (sig != 0) {
         firstTime = std::round(timeLeftSide / sig) * sig; 
     }
@@ -185,7 +185,7 @@ void DrawTimeBar() {
     //draw bg
     DrawRectangleRec(TIMEBARRECT, GRAY);
     //draw major ticks
-    for (float time = firstTime; time < firstTime + sig * 30; time += sig) {
+    for (double time = firstTime; time < firstTime + sig * 30; time += sig) {
         if (time > timeLeftSide && time < timeRightSide) {
             float x = ConvertTimeToXPos(time);
             DrawRectangle(x, y, TIMETICKWIDTH, TIMETICKHEIGHT, PURPLE);
@@ -194,7 +194,7 @@ void DrawTimeBar() {
     }
     //draw current time line
     if (currentTime > timeLeftSide && currentTime < timeRightSide) {
-        float timePos = ConvertTimeToXPos(currentTime) - TIMELINEWIDTH;
+        double timePos = ConvertTimeToXPos(currentTime) - TIMELINEWIDTH;
         DrawRectangle(timePos, y, TIMELINEWIDTH, GetScreenHeight() - y, BLACK);
     }
 }
@@ -309,7 +309,7 @@ void DrawSequenceBars() {
     for (Sequence *seq : sequenceBarseqs) {
         seq->lastDrawnSamples.clear();
         std::vector<SequenceSample*> samps = seq->GetAllSamples();
-        std::vector<std::tuple<Measure, float>> tups = seq->GetMeasures();
+        std::vector<std::tuple<Measure, double>> tups = seq->GetMeasures();
         float screenHeight = GetScreenHeight();
         float screenWidth = GetScreenWidth() - SIDEBARTOTALWIDTH;
         float height = seq->seqHeight;
@@ -323,9 +323,9 @@ void DrawSequenceBars() {
         DrawRectangle(x, yTop + height, GetScreenWidth() - SIDEBARTOTALWIDTH, SEQUENCEBARBORDERWIDTH, BLACK);
         DrawText(seq->name.c_str(), x, yTop, 20, BLACK);
         //draw measures
-        for (std::tuple<Measure, float> tup : tups) {
+        for (std::tuple<Measure, double> tup : tups) {
             Measure measure = std::get<0>(tup);
-            float mesStartTime = std::get<1>(tup);
+            double mesStartTime = std::get<1>(tup);
             float mesx = ConvertTimeToXPos(mesStartTime);
             if (ConvertTimeToXPos(mesStartTime + measure.length) >= x && mesx <= screenWidth) {
                 DrawRectangle(mesx, yTop, MEASUREBARWIDTH, height, GREEN);
@@ -391,18 +391,20 @@ void UpdateWindowSelection(PluginLoader &plugins) {
             x--;
             LoadedPlugin plugin = (*x);
             Sequence *seq = plugin.sequence;
-            if (x == plugins.plugins.end() - 1) {
-                SetWindowSelected(seq); //just in case it isnt already, very cheap op
-                if (Intersects(seq->GetCurrentWindowPaddedPos(), mousePos)) {
-                    break;
+            if (seq->isWindowShown && seq->hasWindow) {
+                if (x == plugins.plugins.end() - 1) {
+                    SetWindowSelected(seq); //just in case it isnt already, very cheap op
+                    if (Intersects(seq->GetCurrentWindowPaddedPos(), mousePos)) {
+                        break;
+                    }
                 }
-            }
-            else if (Intersects(seq->GetCurrentWindowPos(), mousePos)) {
-                //Move that sequence to the back of the sequence list
-                plugins.plugins.erase(x);
-                plugins.plugins.push_back(plugin);
-                SetWindowSelected(seq);
-                isClickUsed = true;
+                else if (Intersects(seq->GetCurrentWindowPos(), mousePos)) {
+                    //Move that sequence to the back of the sequence list
+                    plugins.plugins.erase(x);
+                    plugins.plugins.push_back(plugin);
+                    SetWindowSelected(seq);
+                    isClickUsed = true;
+                }
             }
         }
     }
@@ -416,7 +418,7 @@ bool CreateWindowBoxAround(Rectangle rect, std::string name) {
 }
 
 void ManageZooming() {
-    float deltaTime = timeRightSide - timeLeftSide;
+    double deltaTime = timeRightSide - timeLeftSide;
     Vector2 scroll = GetMouseWheelMoveV();
     float biggerScroll = GetMouseWheelMove();
     if (scroll.x != 0 && scroll.x == biggerScroll) {
@@ -424,8 +426,8 @@ void ManageZooming() {
         timeRightSide -= deltaTime * scroll.x * TIMESCROLLSENSITIVITY;
     }
     if (scroll.y != 0 && scroll.y == biggerScroll && IsKeyDown(KEY_LEFT_SHIFT)) {
-        float newLeft = timeLeftSide + deltaTime * scroll.y * TIMESCALESENSITIVITY;
-        float newRight = timeRightSide - deltaTime * scroll.y * TIMESCALESENSITIVITY;
+        double newLeft = timeLeftSide + deltaTime * scroll.y * TIMESCALESENSITIVITY;
+        double newRight = timeRightSide - deltaTime * scroll.y * TIMESCALESENSITIVITY;
         //don't zoom tooooo far
         if (newRight - newLeft > 0.001f && newRight - newLeft < 80) {
             timeLeftSide = newLeft;

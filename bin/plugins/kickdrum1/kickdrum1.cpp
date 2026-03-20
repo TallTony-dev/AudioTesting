@@ -26,7 +26,7 @@ void KickDrum::ApplyProperties() {
     }
 }
 
-float KickDrum::GetSample(float time) {
+float KickDrum::GetSample(double time) {
     float amp = GETSIN(freq / (time * 5 + 1), 1 / (10 * time * time + 1), time, 0);
 
     if (length - time < 0.05) {

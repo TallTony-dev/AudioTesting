@@ -12,7 +12,7 @@ typedef struct sampleProperty {
 class Sample {
     public:
         virtual void ApplyProperties();
-        virtual float GetSample(float time); //returns 0-1
+        virtual float GetSample(double time); //returns 0-1
         std::unordered_map<std::string, SampleProperty> properties;
         float length;
         float volumeMult;

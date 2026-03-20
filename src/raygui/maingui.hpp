@@ -17,9 +17,9 @@ extern bool isClickUsed;
 
 #define TIMESCROLLSENSITIVITY 0.01
 #define TIMESCALESENSITIVITY 0.01
-extern float timeLeftSide; //time that the left side of the screen represents
-extern float timeRightSide; //time that the right side of the screen minus sidebar width represents
-float ConvertTimeToXPos(float time);
+extern double timeLeftSide; //time that the left side of the screen represents
+extern double timeRightSide; //time that the right side of the screen minus sidebar width represents
+float ConvertTimeToXPos(double time);
 
 void UpdateGui(PluginLoader &plugins); //update the gui, some elements only on resize
 

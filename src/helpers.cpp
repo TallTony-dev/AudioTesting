@@ -2,10 +2,10 @@
 #include "raygui/raygui.h"
 #include <assert.h>
 //duty between 0 and 1 and represents portion of time up
-float GetSquareWave(float hz, float duty, float amplitude, float phaseDiff, float time) {
+float GetSquareWave(float hz, float duty, float amplitude, float phaseDiff, double time) {
     float val = -amplitude;
     float period = 1.0f / hz;
-    float adjTime = std::fmod(time + phaseDiff / hz, period);
+    double adjTime = std::fmod(time + phaseDiff / hz, period);
 
     if (adjTime < period * duty)
         val += 2 * amplitude;
@@ -14,7 +14,7 @@ float GetSquareWave(float hz, float duty, float amplitude, float phaseDiff, floa
 
 float GetBeatTime(float bpm, int beat, int numerator, int denom) {
 
-    float timeBetweenBeats = GetTimeBetweenBeats(bpm, numerator, denom);
+    double timeBetweenBeats = GetTimeBetweenBeats(bpm, numerator, denom);
     return timeBetweenBeats * beat;
 }
 

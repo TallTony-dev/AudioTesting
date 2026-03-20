@@ -26,7 +26,7 @@ void Goop::ApplyProperties() {
     }
 }
 
-float Goop::GetSample(float time) {
+float Goop::GetSample(double time) {
     float amp = GETSIN(freq, 1, time, 0);
 
     if (length - time < 0.05) {

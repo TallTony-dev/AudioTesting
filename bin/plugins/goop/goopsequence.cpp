@@ -6,7 +6,7 @@ EXPORT_SEQUENCE(GoopSequence)
 void GoopSequence::LoadSequenceSamples(std::string filePath) {
     Sequence::LoadSequenceSamples(filePath);
 }
-float GoopSequence::GetSampleAtTime(float time) {
+float GoopSequence::GetSampleAtTime(double time) {
     return Sequence::GetSampleAtTime(time);
 }
 
@@ -28,7 +28,7 @@ void GoopSequence::DrawWindowContent() {
     Sequence::DrawWindowContent();
 }
 
-SequenceSample *GoopSequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, float startTime, int repetitions, float timeGap) {
+SequenceSample *GoopSequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, double startTime, int repetitions, double timeGap) {
     Goop *samp;
     SequenceSample *seqSamp;
     for (int i = 0; i < repetitions; i++) {

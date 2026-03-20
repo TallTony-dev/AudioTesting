@@ -3,7 +3,7 @@
 #define SAMPLERATE (44100)
 
 extern bool playing;
-extern float currentTime;
+extern double currentTime;
 extern PluginLoader loader;
 
 void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);

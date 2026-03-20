@@ -6,7 +6,7 @@ EXPORT_SEQUENCE(KickDrum1Sequence)
 void KickDrum1Sequence::LoadSequenceSamples(std::string filePath) {
     Sequence::LoadSequenceSamples(filePath);
 }
-float KickDrum1Sequence::GetSampleAtTime(float time) {
+float KickDrum1Sequence::GetSampleAtTime(double time) {
     return Sequence::GetSampleAtTime(time);
 }
 
@@ -27,7 +27,7 @@ void KickDrum1Sequence::DrawWindowContent() {
     Sequence::DrawWindowContent();
 }
 
-SequenceSample *KickDrum1Sequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, float startTime, int repetitions, float timeGap) {
+SequenceSample *KickDrum1Sequence::AddSamples(std::unordered_map<std::string, SampleProperty> params, double startTime, int repetitions, double timeGap) {
     KickDrum *samp;
     SequenceSample *seqSamp;
     for (int i = 0; i < repetitions; i++) {
