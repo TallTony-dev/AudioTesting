@@ -15,7 +15,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
             currentTime += (float)1 / SAMPLERATE;
 
             for (LoadedPlugin plugin : loader.plugins) {
-                resultantSample += plugin.sequence->GetSampleAtTime(currentTime);
+                resultantSample += plugin.sequence->GetSampleAtTime(currentTime) * plugin.sequence->seqVolume;
             }
 
             *output++ = resultantSample;

@@ -154,10 +154,11 @@ void UpdateAndDrawTopBars() {
 void UpdateAndDrawSideBar() {
     //have volume and mixing stuff here
     DrawRectangle(0,TOOLBARHEIGHT + FILEBARHEIGHT,SIDEBARTOTALWIDTH,GetScreenHeight() - TOOLBARHEIGHT - FILEBARHEIGHT, DARKBROWN);
-    
+    float cumHeight = 0;
     for (Sequence *seq : sequenceBarseqs) {
+        GuiSlider({0, cumHeight, 20, 10}, "", "volume", &seq->seqVolume, 0, 1);
         
-        
+        cumHeight += seq->seqHeight;
     }
 
     //plugin load button

@@ -64,6 +64,7 @@ class Sequence {
         float seqYPos;
         bool wasSeqResizeSelected;
         bool wasSelectedSampMoveSelected;
+        float seqVolume = 1;
     protected:
         virtual void LoadSequenceSamples(std::string filePath); //load sequence file
         virtual void DrawWindowContent(); //called after setting up drawing to window
