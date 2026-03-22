@@ -75,26 +75,28 @@ void Sequence::Initialize(Vector2 dims) {
 void Sequence::DrawWindowContent() {
     //defined in derived classes
     //note isWindowResized for use here
-    if (selectedSamp != nullptr) {
-        bool hasPropertyChanges = false;
+    if (selectedSamps.size() != 0) {
         int count = 0;
-        for (auto &[name, prop] : selectedSamp->sample->properties) {
+        for (SequenceSample *selectedSamp : selectedSamps) {
+            bool hasPropertyChanges = false;
+            for (auto &[name, prop] : selectedSamp->sample->properties) {
 
-            float height = 60;
-            float width = 60;
-            float x = 30;
-            float y = count * height;
-            float priorValue = prop.val;
-            GuiSliderBar({x,y,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
-            , &prop.val, prop.min, prop.max);
-            if (prop.val != priorValue) {
-                hasPropertyChanges = true;
+                float height = 60;
+                float width = 60;
+                float x = 30;
+                float y = count * height;
+                float priorValue = prop.val;
+                GuiSliderBar({x,y,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
+                , &prop.val, prop.min, prop.max);
+                if (prop.val != priorValue) {
+                    hasPropertyChanges = true;
+                }
+
+                count++;
             }
-
-            count++;
-        }
-        if (hasPropertyChanges) {
-            selectedSamp->sample->ApplyProperties();
+            if (hasPropertyChanges) {
+                selectedSamp->sample->ApplyProperties();
+            }
         }
     }
 }
@@ -292,7 +294,7 @@ void Sequence::LoadSong(std::string songPath) {
     samplesAdded.clear();
     measures.clear();
     lastDrawnSamples.clear();
-    selectedSamp = nullptr;
+    selectedSamps.clear();
     ghostSamp = nullptr;
     prevTime = 0.0f;
 

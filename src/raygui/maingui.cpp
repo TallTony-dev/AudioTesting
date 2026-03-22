@@ -218,6 +218,7 @@ void UpdateSequenceBars() {
     }
     Vector2 mousePos = GetMousePosition();
     for (Sequence* seq : sequenceBarseqs) {
+        seq->highlightedSamp = nullptr;
         seq->seqYPos += deltaY;
         float seqYPos = seq->seqYPos;
         float currentSeqHeight = seq->seqHeight;
@@ -245,10 +246,14 @@ void UpdateSequenceBars() {
                     break;
                 }
                 if (!snapToBeats) {
-                    seq->selectedSamp->startTime += ConvertDeltaXPosToTime(GetMouseDelta().x);
+                    for (SequenceSample *samp : seq->selectedSamps) {
+                        samp->startTime += ConvertDeltaXPosToTime(GetMouseDelta().x);
+                    }
                 }
                 else {
-                    seq->selectedSamp->startTime = SnapToBeat(ConvertXPosToTime(mousePos.x), seq);
+                    for (SequenceSample *samp : seq->selectedSamps) {
+                        samp->startTime += SnapToBeat(ConvertXPosToTime(mousePos.x), seq) - SnapToBeat(ConvertXPosToTime(mousePos.x - GetMouseDelta().x), seq);
+                    }
                 }
             }
 
@@ -278,24 +283,37 @@ void UpdateSequenceBars() {
                     }
                     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
                         if (seq->ghostSamp != nullptr) {
+                            seq->selectedSamps.clear();
                             std::unordered_map<std::string, SampleProperty> props {{"vol", {1,0,1}}, {"freq", {50,0,500}}, {"len", {1,0,10}}};
-                            seq->selectedSamp = seq->AddSamples(props, seq->ghostSamp->startTime);
+                            seq->selectedSamps.push_back(seq->AddSamples(props, seq->ghostSamp->startTime));
                         }
                     }
 
                 }
                 //manage selecting different sequence samps here
                 else if (interactionState == INTERACT_DEFAULT) {
+                    bool wasOneSelected = false;
                     for (DrawnSample samp : seq->lastDrawnSamples) {
-                        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && Intersects(samp.rect, mousePos) && !isClickUsed) {
-                            if (seq->selectedSamp != samp.samp) {
-                                seq->selectedSamp = samp.samp;
+                        if (Intersects(samp.rect, mousePos)) {
+                            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
+                                //if not in the selectedsamps
+                                if (std::find(seq->selectedSamps.begin(), seq->selectedSamps.end(), samp.samp) == seq->selectedSamps.end()) {
+                                    seq->selectedSamps.push_back(samp.samp);
+                                    wasOneSelected = true;
+                                }
+                                else {
+                                    seq->wasSelectedSampMoveSelected = true;
+                                    wasOneSelected = true;
+                                }
+                                isClickUsed = true;
                             }
                             else {
-                                seq->wasSelectedSampMoveSelected = true;
+                                seq->highlightedSamp = samp.samp;
                             }
-                            isClickUsed = true;
                         }
+                    }
+                    if (!wasOneSelected && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                        seq->selectedSamps.clear();
                     }
                 }
             }
@@ -346,7 +364,8 @@ void DrawSequenceBars() {
 
         for (auto i = allSamps.begin(); i != allSamps.end(); i++) {
             SequenceSample *samp = *i;
-            bool isSelectedSamp = samp == seq->selectedSamp;
+            bool isSelectedSamp = seq->selectedSamps.end() != std::find(seq->selectedSamps.begin(), seq->selectedSamps.end(), samp);
+            bool isHighlightedSamp = seq->highlightedSamp == samp;
             float sampx = ConvertTimeToXPos(samp->startTime);
             float sampy = yTop;
             float sampWidth = ConvertTimeToXPos(samp->startTime + samp->sample->length) - sampx;
@@ -359,10 +378,15 @@ void DrawSequenceBars() {
             }
             else {
                 //TODO: handle non freq based drawing here
+
+                
             }
             
             if (isSelectedSamp) {
                 col = DARKPURPLE;
+            }
+            if (isHighlightedSamp) {
+                col = {0, 100, 230, 255};
             }
 
             if (sampx + sampWidth >= x && sampx <= screenWidth + x) {
