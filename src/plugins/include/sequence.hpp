@@ -41,11 +41,12 @@ class Sequence {
         //void Sequence::AddSamplesOfLength(std::shared_ptr<Sample> sample, double startTime, float freqMult, float length, int repetitions = 1, double timeGap = 0);
         virtual float GetSampleAtTime(double time); //updates sample logic based off time and gets sample, should be in range 0,1
         virtual SequenceSample * AddSamples(std::unordered_map<std::string, SampleProperty>, double startTime, int repetitions = 1, double timeGap = 0);
+        void RemoveSample(SequenceSample *samp);
         void DrawWindow(); //draws window
         //void DrawSequence(); //draws sequence to back via maingui
         virtual void Update();
         virtual void Initialize(Vector2 dims);
-        void LoadSong(std::string songPath);
+        virtual void LoadSong(std::string songPath);
         void SaveSong(std::string songPath);
         void SaveLoadedSong();
         std::string name;

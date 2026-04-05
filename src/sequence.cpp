@@ -76,26 +76,29 @@ void Sequence::DrawWindowContent() {
     //defined in derived classes
     //note isWindowResized for use here
     if (selectedSamps.size() != 0) {
-        int count = 0;
+        
+        bool hasPropertyChanges = false;
         for (SequenceSample *selectedSamp : selectedSamps) {
-            bool hasPropertyChanges = false;
+            int count = 0;
             for (auto &[name, prop] : selectedSamp->sample->properties) {
 
                 float height = 60;
                 float width = 60;
-                float x = 30;
-                float y = count * height;
+                float x = 40;
+                float y = count * (height + 20);
                 float priorValue = prop.val;
-                GuiSliderBar({x,y,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
+
+                DrawText(name.c_str(), 0, y, 20, BLACK);
+                GuiSliderBar({x,y + 20,width,height}, std::to_string(prop.min).c_str(), std::to_string(prop.max).c_str()
                 , &prop.val, prop.min, prop.max);
                 if (prop.val != priorValue) {
                     hasPropertyChanges = true;
                 }
 
                 count++;
-            }
-            if (hasPropertyChanges) {
-                selectedSamp->sample->ApplyProperties();
+                if (hasPropertyChanges) {
+                    selectedSamp->sample->ApplyProperties();
+                }
             }
         }
     }
@@ -376,6 +379,24 @@ void Sequence::SaveSong(std::string songPath) {
     ostream.close();
     std::filesystem::rename(pathish + "seqtemp.txt", pathish + "seq.txt");
     //std::filesystem::remove(pathish + "seqtemp.txt");
+}
+void Sequence::RemoveSample(SequenceSample *samp) {
+    std::erase(activeSamples, samp);
+    std::erase(samplesToAdd, samp);
+    std::erase(samplesAdded, samp);
+    std::erase(selectedSamps, samp);
+    if (highlightedSamp == samp) {
+        highlightedSamp = nullptr;
+    }
+    if (ghostSamp == samp) {
+        ghostSamp = nullptr;
+    }
+    std::erase_if(lastDrawnSamples, [samp](const DrawnSample &drawn) {
+        return drawn.samp == samp;
+    });
+
+    delete samp->sample;
+    delete samp;
 }
 
 void Sequence::LoadSequenceSamples(std::string filePath) {

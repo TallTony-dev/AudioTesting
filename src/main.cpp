@@ -42,6 +42,7 @@ int main(int argc, char ** argv)
     loader.LoadPlugin("kickdrum1");
     loader.LoadPlugin("goop");
     loader.LoadPlugin("ambient1");
+    loader.LoadPlugin("sampler");
 
     if (loader.plugins.size() > 0) {
         for (LoadedPlugin plugin : loader.plugins) {

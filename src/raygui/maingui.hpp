@@ -10,6 +10,7 @@ class Sequence; // forward declaration to avoid circular include
 
 #define INTERACT_DEFAULT 0
 #define INTERACT_ADDNOTE 1
+#define INTERACT_DELETENOTE 2
 extern int interactionState;
 
 extern bool snapToBeats;

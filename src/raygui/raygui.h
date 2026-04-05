@@ -3341,7 +3341,7 @@ int GuiValueBoxFloat(Rectangle bounds, const char *text, char *textValue, float 
 
     return result;
 }
-
+//extern bool isClickUsed; //declare this here from maingui.hpp
 // Slider control with pro parameters
 // NOTE: Other GuiSlider*() controls use this one
 int GuiSlider(Rectangle bounds, const char *textLeft, const char *textRight, float *value, float minValue, float maxValue)
@@ -3459,7 +3459,6 @@ int GuiSlider(Rectangle bounds, const char *textLeft, const char *textRight, flo
 
     return result;
 }
-
 // Slider Bar control extended, returns selected value
 int GuiSliderBar(Rectangle bounds, const char *textLeft, const char *textRight, float *value, float minValue, float maxValue)
 {

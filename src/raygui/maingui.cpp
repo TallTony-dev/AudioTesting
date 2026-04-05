@@ -140,8 +140,11 @@ void UpdateAndDrawTopBars() {
     if (GuiButton({80,FILEBARHEIGHT,40,TOOLBARHEIGHT}, "normal")) {
         interactionState = INTERACT_DEFAULT;
     }
+    if (GuiButton({120,FILEBARHEIGHT,40,TOOLBARHEIGHT}, "delete")) {
+        interactionState = INTERACT_DELETENOTE;
+    }
     //snap to note
-    GuiCheckBox({120,FILEBARHEIGHT,40,TOOLBARHEIGHT}, "snap to beats", &snapToBeats);
+    GuiCheckBox({160,FILEBARHEIGHT,40,TOOLBARHEIGHT}, "snap to beats", &snapToBeats);
 
     //save song button
     if (GuiButton({80,0,40,FILEBARHEIGHT}, "save song")) {
@@ -161,7 +164,7 @@ void UpdateAndDrawSideBar() {
         cumHeight += seq->seqHeight;
     }
 
-    //plugin load button
+    //plugin add to song button
     
 
 }
@@ -312,10 +315,24 @@ void UpdateSequenceBars() {
                             }
                         }
                     }
-                    if (!wasOneSelected && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    if (!wasOneSelected && IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
                         seq->selectedSamps.clear();
+                        isClickUsed = true;
+                    }
+                    DrawText(std::to_string(seq->selectedSamps.size()).c_str(), 700,300, 50, BLACK);
+                }
+                else if (interactionState == INTERACT_DELETENOTE) {
+                    for (DrawnSample samp : seq->lastDrawnSamples) {
+                        if (Intersects(samp.rect, mousePos)) {
+                            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
+                                isClickUsed = true;
+                                seq->RemoveSample(samp.samp);
+                                break;
+                            }
+                        }
                     }
                 }
+
             }
         }
     }
@@ -379,7 +396,7 @@ void DrawSequenceBars() {
             else {
                 //TODO: handle non freq based drawing here
 
-                
+
             }
             
             if (isSelectedSamp) {
@@ -387,6 +404,11 @@ void DrawSequenceBars() {
             }
             if (isHighlightedSamp) {
                 col = {0, 100, 230, 255};
+                if (isSelectedSamp) {
+                    col = GREEN;
+                }
+                sampy -= 2;
+                sampHeight += 4;
             }
 
             if (sampx + sampWidth >= x && sampx <= screenWidth + x) {
@@ -419,6 +441,7 @@ void UpdateWindowSelection(PluginLoader &plugins) {
                 if (x == plugins.plugins.end() - 1) {
                     SetWindowSelected(seq); //just in case it isnt already, very cheap op
                     if (Intersects(seq->GetCurrentWindowPaddedPos(), mousePos)) {
+                        isClickUsed = true;
                         break;
                     }
                 }
