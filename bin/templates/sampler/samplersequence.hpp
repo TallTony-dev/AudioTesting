@@ -19,7 +19,7 @@ class SamplerSequence : public Sequence {
         float GetSampleAtTime(float time);
         int sampLength;
     protected:
-        float *buf;
-        int bufLength;
-        int sampleRate;
+        float *buf = nullptr;
+        int bufLength = 0;
+        int sampleRate = 0;
 };

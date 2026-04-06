@@ -19,12 +19,10 @@ void Sampler::ApplyProperties() {
     }
     //indicates the start of the sample time for chops
     if (properties.contains("start")) {
-        length = properties["start"].val;
         properties["start"].min = 0;
         properties["start"].max = _owner->sampLength;
     }
     if (properties.contains("end")) {
-        length = properties["end"].val;
         properties["end"].min = 0;
         properties["end"].max = _owner->sampLength;
     }
@@ -36,5 +34,6 @@ void Sampler::ApplyProperties() {
 }
 
 float Sampler::GetSample(double time) {
-    return _owner->GetSampleAtTime(time) * volumeMult;
+    time = std::fmod(time, properties["end"].val - properties["start"].val);
+    return _owner->GetLoadedSampleAtTime(properties["start"].val + time) * volumeMult;
 }

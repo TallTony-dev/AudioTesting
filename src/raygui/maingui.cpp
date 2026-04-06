@@ -287,8 +287,7 @@ void UpdateSequenceBars() {
                     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !isClickUsed) {
                         if (seq->ghostSamp != nullptr) {
                             seq->selectedSamps.clear();
-                            std::unordered_map<std::string, SampleProperty> props {{"vol", {1,0,1}}, {"freq", {50,0,500}}, {"len", {1,0,10}}};
-                            seq->selectedSamps.push_back(seq->AddSamples(props, seq->ghostSamp->startTime));
+                            seq->selectedSamps.push_back(seq->AddSamples(seq->GetDefaultProperties(), seq->ghostSamp->startTime));
                         }
                     }
 

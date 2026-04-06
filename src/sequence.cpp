@@ -72,6 +72,9 @@ void Sequence::Initialize(Vector2 dims) {
     currentPos = Rectangle {.x = 50, .y = 50, .width = dims.x, .height = dims.y};
     seqHeight = 60;
 }
+std::unordered_map<std::string, SampleProperty> Sequence::GetDefaultProperties() {
+    return std::unordered_map<std::string, SampleProperty>{{"vol", {1,0,1}}, {"freq", {50,0,500}}, {"len", {1,0,10}}};
+}
 void Sequence::DrawWindowContent() {
     //defined in derived classes
     //note isWindowResized for use here

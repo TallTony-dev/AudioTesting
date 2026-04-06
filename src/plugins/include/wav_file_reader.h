@@ -9,6 +9,7 @@
 #include<cstdio>
 #include<cstdlib>
 #include<cstring>
+#include<cstdint>
 #include<exception>
 #include<string>
 
@@ -49,16 +50,16 @@ namespace sakado {
 	class WavFileReader {
 
 	public:
-		unsigned long FmtSize;
-		unsigned short FmtID;
-		unsigned short NumChannels;
-		unsigned long SampleRate;
-		unsigned long BytesPerSec;
-		unsigned short BlockAlign;//(bytes per sample)*(channels)
-		unsigned short BitsPerSample;
-		unsigned long DataSize;
-		unsigned short BytesPerSample;
-		unsigned long NumData;
+		uint32_t FmtSize;
+		uint16_t FmtID;
+		uint16_t NumChannels;
+		uint32_t SampleRate;
+		uint32_t BytesPerSec;
+		uint16_t BlockAlign;//(bytes per sample)*(channels)
+		uint16_t BitsPerSample;
+		uint32_t DataSize;
+		uint16_t BytesPerSample;
+		uint32_t NumData;
 
 
 		WavFileReader(string filename) {
@@ -137,7 +138,7 @@ namespace sakado {
 				}
 
 				numSuccess = fread(primaryBuf, BytesPerSample, readCnt, fp) / NumChannels;
-				if (numSuccess < readCnt) leftToRead = 0;
+				if (numSuccess < (readCnt / NumChannels)) leftToRead = 0;
 
 				ArrangeReadData(buf, numSuccess);
 				numDone += numSuccess;
@@ -181,7 +182,7 @@ namespace sakado {
 				}
 
 				numSuccess = fread(primaryBuf, BytesPerSample, readCnt, fp) / NumChannels;
-				if (numSuccess < readCnt) leftToRead = 0;
+				if (numSuccess < (readCnt / NumChannels)) leftToRead = 0;
 
 				ArrangeReadLRData(bufL, bufR, numSuccess);
 				numDone += numSuccess;
@@ -200,7 +201,7 @@ namespace sakado {
 				wavFilePointer = 0;
 				return 1;
 			}
-			if ((unsigned long)(wavFilePointer + offset) > NumData) {
+			if ((uint32_t)(wavFilePointer + offset) > NumData) {
 				fseek(fp, (NumData - wavFilePointer)*BlockAlign, origin);
 				wavFilePointer = NumData;
 				return 1;
@@ -210,7 +211,7 @@ namespace sakado {
 		}
 
 		
-		unsigned long Tell() {
+		uint32_t Tell() {
 			return wavFilePointer;
 		}
 
@@ -219,7 +220,7 @@ namespace sakado {
 		FILE* fp;
 		unsigned int numPrimaryBuf;//count of general purpose buf = total buf size / BlockAlign
 		void *primaryBuf;
-		unsigned long wavFilePointer;
+		uint32_t wavFilePointer;
 		unsigned char *ucharp;
 		signed short *shortp;
 		char filename[256];
@@ -256,25 +257,50 @@ namespace sakado {
 				throw WFRFileValidityException();
 			}
 
-			fseek(fp, 4, SEEK_CUR);
-			fread(&FmtSize, 4, 1, fp);
+			if (fread(ch, 1, 4, fp) != 4) {
+				fclose(fp);
+				throw WFRFileValidityException();
+			}
+			ch[4] = '\0';
+			if (strcmp(ch, "fmt ")) {
+				fclose(fp);
+				throw WFRFileValidityException();
+			}
+
+			if (fread(&FmtSize, 4, 1, fp) != 1 || FmtSize < 16) {
+				fclose(fp);
+				throw WFRFileValidityException();
+			}
 			fread(&FmtID, 2, 1, fp);
 			fread(&NumChannels, 2, 1, fp);
 			fread(&SampleRate, 4, 1, fp);
 			fread(&BytesPerSec, 4, 1, fp);
 			fread(&BlockAlign, 2, 1, fp);
 			fread(&BitsPerSample, 2, 1, fp);
-			fseek(fp, FmtSize - 16, SEEK_CUR);
-			fread(ch, 1, 4, fp);
-			while (strcmp(ch, "data")) {
+			if (FmtSize > 16) {
+				fseek(fp, FmtSize - 16, SEEK_CUR);
+			}
+
+			while (true) {
+				if (fread(ch, 1, 4, fp) != 4) {
+					fclose(fp);
+					throw WFRFileValidityException();
+				}
+				ch[4] = '\0';
+				if (!strcmp(ch, "data")) {
+					break;
+				}
 				if (fread(&size, 4, 1, fp) != 1) {
 					fclose(fp);
 					throw WFRFileValidityException();
 				}
-				fseek(fp, size, SEEK_CUR);
-				fread(ch, 1, 4, fp);
+				fseek(fp, size + (size & 1), SEEK_CUR);
 			}
-			fread(&DataSize, 4, 1, fp);
+
+			if (fread(&DataSize, 4, 1, fp) != 1) {
+				fclose(fp);
+				throw WFRFileValidityException();
+			}
 			BytesPerSample = BitsPerSample / 8;
 			NumData = DataSize / BlockAlign;
 
@@ -323,24 +349,24 @@ namespace sakado {
 
 				switch (sizeof(Type)) {
 					case sizeof(unsigned char) :
-						for (i = 0; i < numSuccess; i += 2)
-							*(buf++) = ((unsigned long)ucharp[i] + (unsigned long)ucharp[i + 1]) >> 1;
+						for (i = 0; i < numSuccess; i++)
+							*(buf++) = ((unsigned long)ucharp[2 * i] + (unsigned long)ucharp[2 * i + 1]) >> 1;
 						break;
 					default:
-						for (i = 0; i < numSuccess; i += 2)
-							*(buf++) = ((long)ucharp[i] + (long)ucharp[i + 1]) / 2;
+						for (i = 0; i < numSuccess; i++)
+							*(buf++) = ((long)ucharp[2 * i] + (long)ucharp[2 * i + 1]) / 2;
 				}
 			}
 			else if (NumChannels == 2 && BitsPerSample == 16) {
 
 				switch (sizeof(Type)) {
 					case sizeof(unsigned char) :
-						for (i = 0; i < numSuccess; i += 2)
-							*(buf++) = (unsigned long)((long)shortp[i] + (long)shortp[i + 1] + 0x10000) >> 9;
+						for (i = 0; i < numSuccess; i++)
+							*(buf++) = (unsigned long)((long)shortp[2 * i] + (long)shortp[2 * i + 1] + 0x10000) >> 9;
 						break;
 					default:
-						for (i = 0; i < numSuccess; i += 2)
-							*(buf++) = ((long)shortp[i] + (long)shortp[i + 1]) / 2;
+						for (i = 0; i < numSuccess; i++)
+							*(buf++) = ((long)shortp[2 * i] + (long)shortp[2 * i + 1]) / 2;
 				}
 			}
 		}
@@ -375,24 +401,24 @@ namespace sakado {
 			}
 			else if (NumChannels == 2 && BitsPerSample == 8) {
 
-				for (i = 0; i < numSuccess; i += 2) {
-					*(bufL++) = ucharp[i];
-					*(bufR++) = ucharp[i + 1];
+				for (i = 0; i < numSuccess; i++) {
+					*(bufL++) = ucharp[2 * i];
+					*(bufR++) = ucharp[2 * i + 1];
 				}
 			}
 			else if (NumChannels == 2 && BitsPerSample == 16) {
 
 				switch (sizeof(Type)) {
 					case sizeof(unsigned char) :
-						for (i = 0; i < numSuccess; i += 2) {
-							*(bufL++) = ((long)shortp[i] + 0x8000) >> 8;
-							*(bufR++) = ((long)shortp[i + 1] + 0x8000) >> 8;
+						for (i = 0; i < numSuccess; i++) {
+							*(bufL++) = ((long)shortp[2 * i] + 0x8000) >> 8;
+							*(bufR++) = ((long)shortp[2 * i + 1] + 0x8000) >> 8;
 						}
 											   break;
 					default:
-						for (i = 0; i < numSuccess; i += 2) {
-							*(bufL++) = shortp[i];
-							*(bufR++) = shortp[i + 1];
+						for (i = 0; i < numSuccess; i++) {
+							*(bufL++) = shortp[2 * i];
+							*(bufR++) = shortp[2 * i + 1];
 						}
 				}
 			}

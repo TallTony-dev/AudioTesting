@@ -1,6 +1,6 @@
 #pragma once
 #include "../include/sequence.hpp"
-#include "sampler.hpp"
+#include "../include/sample.hpp"
 #include "../include/plugininterface.hpp"
 #include "../rayinclude/raylib.h"
 #include <unordered_map>
@@ -16,10 +16,11 @@ class SamplerSequence : public Sequence {
         void LoadSong(std::string songPath) override;
         ~SamplerSequence() override;
         inline int GetSafeIndexAtTime(float time);
-        float GetSampleAtTime(float time);
-        int sampLength;
+        float GetLoadedSampleAtTime(float time);
+        std::unordered_map<std::string, SampleProperty> GetDefaultProperties() override;
+        float sampLength;
     protected:
-        float *buf;
-        int bufLength;
-        int sampleRate;
+        float *buf = nullptr;
+        int bufLength = 0;
+        int sampleRate = 0;
 };

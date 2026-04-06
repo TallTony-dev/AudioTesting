@@ -23,7 +23,7 @@ else                                      # Linux / other
     LDFLAGS     := -shared
 endif
 
-PLUGIN_NAME := template
+PLUGIN_NAME := sampler
 TARGET      := $(BINDIR)/$(PLUGIN_NAME)$(SHARED_EXT)
 
 # ── Sources & objects ────────────────────────────────────────

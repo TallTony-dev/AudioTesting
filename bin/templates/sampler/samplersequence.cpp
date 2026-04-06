@@ -1,6 +1,8 @@
 #include "samplersequence.hpp"
 #include "../rayinclude/raygui.h"
 #include "../include/wav_file_reader.h"
+#include <filesystem>
+#include <iostream>
 
 EXPORT_SEQUENCE(SamplerSequence)
 
@@ -8,33 +10,93 @@ void SamplerSequence::LoadSequenceSamples(std::string filePath) {
     Sequence::LoadSequenceSamples(filePath);
 }
 float SamplerSequence::GetSampleAtTime(double time) {
-    return Sequence::GetSampleAtTime(time);
+    return GetSampleAtTime(static_cast<float>(time));
 }
 void SamplerSequence::LoadSong(std::string songPath) {
     Sequence::LoadSong(songPath);
 
-    
-    sakado::WavFileReader wfr(songPath + name + "/" + "sample.wav");
-    buf = new float[wfr.NumData];
-    bufLength = wfr.NumData;
-    wfr.Read(buf, bufLength);
-    sampleRate = wfr.SampleRate;
-    sampLength = (float)bufLength / (float)sampleRate;
+    delete[] buf;
+    buf = nullptr;
+    bufLength = 0;
+    sampleRate = 0;
+    sampLength = 0;
+
+    namespace fs = std::filesystem;
+    fs::path relativePath = fs::path(songPath) / name / "sample.wav";
+    fs::path resolvedPath = relativePath;
+
+    if (!fs::exists(resolvedPath)) {
+        fs::path candidateFromCwd = fs::current_path() / relativePath;
+        fs::path candidateFromParent = fs::current_path().parent_path() / relativePath;
+        if (fs::exists(candidateFromCwd)) {
+            resolvedPath = candidateFromCwd;
+        } else if (fs::exists(candidateFromParent)) {
+            resolvedPath = candidateFromParent;
+        }
+    }
+
+    if (!fs::exists(resolvedPath)) {
+        std::cerr << "[SamplerSequence] sample.wav not found. Tried: "
+                  << relativePath.string() << " and cwd/parent variants" << std::endl;
+        return;
+    }
+
+    std::cout << "[SamplerSequence] Loading sample from " << resolvedPath.string() << std::endl;
+    try {
+        sakado::WavFileReader wfr(resolvedPath.string());
+        bufLength = static_cast<int>(wfr.NumData);
+        sampleRate = static_cast<int>(wfr.SampleRate);
+        buf = new float[bufLength];
+        wfr.Read(buf, bufLength);
+
+        if (wfr.BitsPerSample == 16) {
+            for (int i = 0; i < bufLength; i++) {
+                buf[i] = buf[i] / 32768.0f;
+            }
+        } else if (wfr.BitsPerSample == 8) {
+            for (int i = 0; i < bufLength; i++) {
+                buf[i] = (buf[i] / 127.5f) - 1.0f;
+            }
+        }
+
+        for (int i = 0; i < bufLength; i++) {
+            if (buf[i] < -1.0f) {
+                buf[i] = -1.0f;
+            } else if (buf[i] > 1.0f) {
+                buf[i] = 1.0f;
+            }
+        }
+
+        sampLength = sampleRate > 0 ? static_cast<int>(bufLength / sampleRate) : 0;
+    } catch (const std::exception& e) {
+        std::cerr << "[SamplerSequence] Failed to load WAV at " << resolvedPath.string()
+                  << " with error: " << e.what() << std::endl;
+        delete[] buf;
+        buf = nullptr;
+        bufLength = 0;
+        sampleRate = 0;
+        sampLength = 0;
+    }
 }
 
 inline int SamplerSequence::GetSafeIndexAtTime(float time) {
+    if (bufLength <= 0 || sampleRate <= 0) {
+        return 0;
+    }
     int ind = sampleRate * time;
     if (ind < 0) ind = 0;
     if (ind >= bufLength) ind = bufLength - 1;
     return ind;
 }
 float SamplerSequence::GetSampleAtTime(float time) {
+    if (buf == nullptr || bufLength <= 0) {
+        return 0.0f;
+    }
     return buf[GetSafeIndexAtTime(time)];
 }
 
 SamplerSequence::~SamplerSequence() {
-    Sequence::~Sequence();
-    delete buf;
+    delete[] buf;
 }
 
 void SamplerSequence::Initialize(Vector2 dims) { 

@@ -1,7 +1,9 @@
 #pragma once
 #include "../include/sample.hpp"
-#include "samplersequence.hpp"
-#include <vector>
+#include <string>
+#include <unordered_map>
+
+class SamplerSequence;
 
 class Sampler : public Sample {
     public:
