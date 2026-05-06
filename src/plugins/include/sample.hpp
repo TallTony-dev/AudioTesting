@@ -8,11 +8,13 @@ typedef struct sampleProperty {
     float max = 1.0f;
 } SampleProperty;
 
+struct Rectangle; //defined elsewhere
 
 class Sample {
     public:
         virtual void ApplyProperties();
         virtual float GetSample(double time); //returns 0-1
+        virtual Rectangle DrawSample(float yOffset, float startTime, float seqHeight, bool isSelected, bool isHighlighted, bool hasFreq = true);
         std::unordered_map<std::string, SampleProperty> properties;
         float length;
         float volumeMult;

@@ -19,7 +19,6 @@ class SamplerSequence : public Sequence {
         float GetLoadedSampleAtTime(float time);
         std::unordered_map<std::string, SampleProperty> GetDefaultProperties() override;
         float sampLength;
-    protected:
         float *buf = nullptr;
         int bufLength = 0;
         int sampleRate = 0;
