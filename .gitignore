@@ -5,3 +5,4 @@ bin/build_osx
 *.dylib
 *.dll
 bin/build_osx
+/.vs
