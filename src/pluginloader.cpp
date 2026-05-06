@@ -2,10 +2,12 @@
 #include <cstdlib>
 #include "pluginloader.hpp"
 #include "plugins/include/plugininterface.hpp"
-#include <libc.h>
 #include <filesystem>
 #include <iostream>
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#define NOUSER
 #include <windows.h>
 #endif
 #ifdef __APPLE__
@@ -14,12 +16,16 @@
 
 bool PluginLoader::LoadPlugin(const std::string& pluginName) {
     std::string pluginRelPath = "./plugins/" + pluginName;
+    std::string makeTarget = "all";
     //run makefile and error on fail
+    #ifdef _WIN32
+    makeTarget = "all";
+    #endif
     std::system((std::string("make -C ") + pluginRelPath + " clean").c_str());
-    std::system((std::string("make -C ") + pluginRelPath + " all").c_str());
+    std::system((std::string("make -C ") + pluginRelPath + " " + makeTarget).c_str());
 
     //link the dll and call the constructor from plugininterface
-    
+    // Heavy LLM use in this area
     #ifdef __APPLE__
     //load dylib here
     void *handle;
@@ -49,7 +55,34 @@ bool PluginLoader::LoadPlugin(const std::string& pluginName) {
     }
     return true;
     #endif
-    std::cout << "non mac not yet supported" << std::endl;
+    #ifdef _WIN32
+    void *handle;
+    std::string dllPath = pluginRelPath + "/bin/" + pluginName + ".dll";
+    std::cout << "Loading dll from path " + dllPath + "\n";
+    if ((handle = (void*)LoadLibraryA(dllPath.c_str())) != NULL) {
+        std::cout << "Successfully loaded plugin from " << pluginRelPath << std::endl;
+        auto create = (CreateSequenceFn)GetProcAddress((HMODULE)handle, "CreateSequence");
+        auto destroy = (DestroySequenceFn)GetProcAddress((HMODULE)handle, "DestroySequence");
+        if (!create || !destroy) {
+            std::cout << "Plugin missing CreateSequence/DestroySequence at path " << pluginRelPath << std::endl;
+            FreeLibrary((HMODULE)handle);
+            return false;
+        }
+        LoadedPlugin plugin;
+        plugin.handle = handle;
+        plugin.destroy = destroy;
+        plugin.sequence = create();
+        plugin.sequence->name = pluginName;
+        plugin.sequence->Initialize({250,250});
+        plugins.push_back(plugin);
+        return true;
+    }
+    else {
+        std::cout << "Failed to load dll from " << pluginRelPath << " with error code: " << GetLastError() << std::endl;
+        return false;
+    }
+    #endif
+    std::cout << "non mac/windows not yet supported" << std::endl;
     return false;
 }
 bool PluginLoader::ReloadPlugin(const std::string& pluginName) {

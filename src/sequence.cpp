@@ -14,6 +14,7 @@
 #include <cmath>
 #include <unordered_set>
 #include <exception>
+#include <filesystem>
 #include "playback.hpp"
 
 #ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT

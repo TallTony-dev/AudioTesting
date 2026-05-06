@@ -1,5 +1,6 @@
 #include "plugins/include/sample.hpp"
 #include <exception>
+#include <stdexcept>
 
 void Sample::ApplyProperties() {
     //defined in derived classes

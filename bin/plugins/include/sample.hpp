@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <string>
 
 typedef struct sampleProperty {
     float val = 0.0f;

@@ -10,17 +10,24 @@ OBJDIR    := obj
 BINDIR    := bin
 
 # ── Detect OS & set shared-library extension / flags ────────
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S),Darwin)                 # macOS
-    SHARED_EXT  := .dylib
-    LDFLAGS     := -dynamiclib -undefined dynamic_lookup
-else ifeq ($(OS),Windows_NT)             # Windows (MinGW / MSYS2)
-    SHARED_EXT  := .dll
-    LDFLAGS     := -shared
-else                                      # Linux / other
-    SHARED_EXT  := .so
-    LDFLAGS     := -shared
+ifeq ($(OS),Windows_NT)                  # Windows
+	SHARED_EXT  := .dll
+	LDFLAGS     := -shared
+	LDLIBS      := ../../../bin/libAudioTesting.a
+	MKDIR       = mkdir $(subst /,\,$1) 2> NUL || echo "" > NUL
+	RMDIR       = rmdir /s /q $(subst /,\,$1) 2> NUL || echo "" > NUL
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Darwin)                 # macOS
+		SHARED_EXT  := .dylib
+		LDFLAGS     := -dynamiclib -undefined dynamic_lookup
+	else                                      # Linux / other
+		SHARED_EXT  := .so
+		LDFLAGS     := -shared
+	endif
+	LDLIBS      :=
+	MKDIR       = mkdir -p $1
+	RMDIR       = rm -rf $1
 endif
 
 PLUGIN_NAME := template
@@ -40,7 +47,7 @@ INCLUDES := -I.. -I../include
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS) | $(BINDIR)
-	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CXX) $(LDFLAGS) $(OBJECTS) $(LDLIBS) -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	@mkdir -p $(dir $@)
