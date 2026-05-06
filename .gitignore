@@ -1,8 +1,7 @@
 obj
 bin/out.wav
 bin/build_osx
-*.wav
 *.dylib
 *.dll
-bin/build_osx
+bin/build_windows.exe
 /.vs
