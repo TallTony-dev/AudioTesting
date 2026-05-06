@@ -1,6 +1,6 @@
 #include "plugins/include/sequence.hpp"
 #include "plugins/include/sample.hpp"
-#include "raygui/maingui.hpp"
+#include "plugins/include/maingui.hpp"
 #include "raygui/raygui.h"
 #include "plugins/include/helpers.hpp"
 #include <fstream>

@@ -10,6 +10,7 @@ class Sampler : public Sample {
         Sampler(std::unordered_map<std::string, SampleProperty> properties, SamplerSequence *owner);
         void ApplyProperties() override;
         float GetSample(double time) override;
+        Rectangle DrawSample(float yOffset, float startTime, float seqHeight, bool isSelected, bool isHighlighted, bool hasfreq = false) override;
     private:
         SamplerSequence *_owner;
 };

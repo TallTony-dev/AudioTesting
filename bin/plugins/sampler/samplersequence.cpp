@@ -115,7 +115,16 @@ void SamplerSequence::Update() {
 void SamplerSequence::DrawWindowContent() {
     Rectangle currentPos = GetCurrentPos();
     DrawRectangle(0,0,currentPos.width, currentPos.height, GREEN);
-    Sequence::DrawWindowContent();
+    DrawRectangle(0,0,currentPos.width, 60, DARKPURPLE);
+    int scaleFactor = bufLength / currentPos.width;
+    if (scaleFactor > 0) {
+        for (int i = 0; i < bufLength; i += 1) {
+            DrawRectangle(i / scaleFactor, buf[i] * 30 + 30, 1, 2, YELLOW);
+        }
+    }
+
+
+    //Sequence::DrawWindowContent();
 }
 
 std::unordered_map<std::string, SampleProperty> SamplerSequence::GetDefaultProperties() {

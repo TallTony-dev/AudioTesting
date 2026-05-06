@@ -1,5 +1,6 @@
 #include "sampler.hpp"
 #include "../include/helpers.hpp"
+#include "../include/maingui.hpp"
 #include "samplersequence.hpp"
 #include <unordered_map>
 
@@ -32,6 +33,22 @@ void Sampler::ApplyProperties() {
         properties["vol"].max = 1;
     }
 }
+
+Rectangle Sampler::DrawSample(float yOffset, float startTime, float seqHeight, bool isSelected, bool isHighlighted, bool hasfreq) {
+
+    Rectangle rect = Sample::DrawSample(yOffset, startTime, seqHeight, isSelected, isHighlighted, false);
+    int scaleFactor = _owner->bufLength / (ConvertTimeToXPos(startTime + length) - ConvertTimeToXPos(startTime));
+    if (scaleFactor > 0 && _owner->buf != nullptr) {
+        for (int i = 0; i < _owner->bufLength; i += scaleFactor) {
+            DrawRectangle(i / scaleFactor + rect.x, _owner->buf[i] * seqHeight / 2 + seqHeight / 2 + yOffset, 1, 2, YELLOW);
+        }
+    }
+
+    //draw start and end lines here/repeating maybe too
+
+    return rect;
+}
+
 
 float Sampler::GetSample(double time) {
     time = std::fmod(time, properties["end"].val - properties["start"].val);

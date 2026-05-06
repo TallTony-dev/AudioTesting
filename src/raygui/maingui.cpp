@@ -1,4 +1,4 @@
-#include "maingui.hpp"
+#include "../plugins/include/maingui.hpp"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 #include "raylib/raylib/include/raylib.h"
@@ -382,38 +382,7 @@ void DrawSequenceBars() {
             SequenceSample *samp = *i;
             bool isSelectedSamp = seq->selectedSamps.end() != std::find(seq->selectedSamps.begin(), seq->selectedSamps.end(), samp);
             bool isHighlightedSamp = seq->highlightedSamp == samp;
-            float sampx = ConvertTimeToXPos(samp->startTime);
-            float sampy = yTop;
-            float sampWidth = ConvertTimeToXPos(samp->startTime + samp->sample->length) - sampx;
-            float sampHeight = height;
-            Color col = DARKGREEN;
-            float freq = samp->sample->freq;
-            if (freq > 0) {
-                sampHeight = 3;
-                sampy = yTop + height - sampHeight - std::clamp((freq - 100) / 5, 0.0f, height);
-            }
-            else {
-                //TODO: handle non freq based drawing here
-
-
-            }
-            
-            if (isSelectedSamp) {
-                col = DARKPURPLE;
-            }
-            if (isHighlightedSamp) {
-                col = {0, 100, 230, 255};
-                if (isSelectedSamp) {
-                    col = GREEN;
-                }
-                sampy -= 2;
-                sampHeight += 4;
-            }
-
-            if (sampx + sampWidth >= x && sampx <= screenWidth + x) {
-                DrawRectangle(sampx, sampy, sampWidth, sampHeight, col);
-                seq->lastDrawnSamples.push_back({samp, {sampx, sampy, sampWidth, sampHeight}});
-            }
+            seq->lastDrawnSamples.push_back({samp, samp->sample->DrawSample(yTop, samp->startTime, seq->seqHeight, isSelectedSamp, isHighlightedSamp)});
         }
     }
     DrawTimeBar();

@@ -1,9 +1,9 @@
 #pragma once
 #include <string>
-#include "raygui.h"
-#include "../pluginloader.hpp"
 
 class Sequence; // forward declaration to avoid circular include
+class PluginLoader;
+struct Rectangle;
 
 #define MEASUREBARWIDTH 5
 #define BEATBARWIDTH 2
