@@ -124,7 +124,7 @@ void SamplerSequence::DrawWindowContent() {
     }
 
 
-    //Sequence::DrawWindowContent();
+    Sequence::DrawWindowContent();
 }
 
 std::unordered_map<std::string, SampleProperty> SamplerSequence::GetDefaultProperties() {

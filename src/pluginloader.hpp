@@ -12,7 +12,7 @@ struct LoadedPlugin {
 class PluginLoader {
     public:
         std::vector<LoadedPlugin> plugins;
-        bool LoadPlugin(const std::string& pluginName);
+        bool LoadPlugin(const std::string& pluginName, bool clean = false);
         bool ReloadPlugin(const std::string& pluginName);
         bool UnloadPlugin();
         void UnloadAll();

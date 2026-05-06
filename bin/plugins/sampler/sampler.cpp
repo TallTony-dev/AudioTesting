@@ -37,14 +37,15 @@ void Sampler::ApplyProperties() {
 Rectangle Sampler::DrawSample(float yOffset, float startTime, float seqHeight, bool isSelected, bool isHighlighted, bool hasfreq) {
 
     Rectangle rect = Sample::DrawSample(yOffset, startTime, seqHeight, isSelected, isHighlighted, false);
-    int scaleFactor = _owner->bufLength / (ConvertTimeToXPos(startTime + length) - ConvertTimeToXPos(startTime));
-    if (scaleFactor > 0 && _owner->buf != nullptr) {
-        for (int i = 0; i < _owner->bufLength; i += scaleFactor) {
-            DrawRectangle(i / scaleFactor + rect.x, _owner->buf[i] * seqHeight / 2 + seqHeight / 2 + yOffset, 1, 2, YELLOW);
+
+    if (_owner->buf != nullptr && rect.width > 0) {
+        for (int p = 0; p < rect.width; p++) {
+            double timeInSample = (p / rect.width) * length;
+            double time = std::fmod(timeInSample, properties["end"].val - properties["start"].val);
+            float sampVal = _owner->GetLoadedSampleAtTime(properties["start"].val + time);
+            DrawRectangle(p + rect.x, sampVal * seqHeight / 2 + seqHeight / 2 + yOffset, 1, 2, YELLOW);
         }
     }
-
-    //draw start and end lines here/repeating maybe too
 
     return rect;
 }

@@ -8,10 +8,10 @@
 #include "plugins/include/helpers.hpp"
 #include "raygui/raygui.h"
 #include "pluginloader.hpp"
-#include "raygui/maingui.hpp"
+#include "plugins/include/maingui.hpp"
 #include "playback.hpp"
 #include <iostream>
-
+#include <future>
 
 #define BUF_SIZE (SAMPLERATE*10)
 
@@ -36,12 +36,12 @@ void CreateWavFile() {
 int main(int argc, char ** argv)
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    SetTargetFPS(60);
+    SetTargetFPS(90);
     InitWindow(800, 500, "Woah cool DAW buddy");
 
-    loader.LoadPlugin("kickdrum1");
+    //loader.LoadPlugin("kickdrum1");
     loader.LoadPlugin("goop");
-    loader.LoadPlugin("ambient1");
+    //loader.LoadPlugin("ambient1");
     loader.LoadPlugin("sampler");
 
     if (loader.plugins.size() > 0) {

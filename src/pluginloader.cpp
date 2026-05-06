@@ -14,14 +14,16 @@
 #include <dlfcn.h>
 #endif
 
-bool PluginLoader::LoadPlugin(const std::string& pluginName) {
+bool PluginLoader::LoadPlugin(const std::string& pluginName, bool clean) {
     std::string pluginRelPath = "./plugins/" + pluginName;
     std::string makeTarget = "all";
     //run makefile and error on fail
     #ifdef _WIN32
     makeTarget = "all";
     #endif
-    std::system((std::string("make -C ") + pluginRelPath + " clean").c_str());
+    if (clean) {
+        std::system((std::string("make -C ") + pluginRelPath + " clean").c_str());
+    }
     std::system((std::string("make -C ") + pluginRelPath + " " + makeTarget).c_str());
 
     //link the dll and call the constructor from plugininterface

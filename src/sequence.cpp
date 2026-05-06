@@ -87,9 +87,9 @@ void Sequence::DrawWindowContent() {
             for (auto &[name, prop] : selectedSamp->sample->properties) {
 
                 float height = 60;
-                float width = 60;
-                float x = 40;
-                float y = count * (height + 20);
+                float width = currentPos.width;
+                float x = 0;
+                float y = count * (height + 40);
                 float priorValue = prop.val;
 
                 DrawText(name.c_str(), 0, y, 20, BLACK);
